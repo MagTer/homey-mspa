@@ -30,4 +30,4 @@ This app supports most modern M-Spa models using the M-Spa mobile app. The app a
 
 ## Disclaimer
 
-This app is not affiliated with or endorsed by M-Spa. It uses the M-Spa cloud API (reverse-engineered) to provide integration with Homey.
+This app is not affiliated with or endorsed by M-Spa. It uses the M-Spa cloud API, based on the implementation by [snarky-snark/ha-mspa](https://github.com/snarky-snark/ha-mspa).
