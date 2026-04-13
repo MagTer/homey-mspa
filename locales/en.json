@@ -1,5 +1,18 @@
 {
-  "M-Spa Hot Tub": {},
+  "M-Spa Hot Tub": {
+    "en": "M-Spa Hot Tub",
+    "no": "M-Spa Boblebad"
+  },
+  "pairing": {
+    "select_region": {
+      "title": "Select Region",
+      "body": "Select the region where your M-Spa account is registered."
+    },
+    "login": {
+      "title": "Login",
+      "body": "Enter the email address and password for your M-Spa account."
+    }
+  },
   "capabilities": {
     "bubble_level": {
       "name": "Bubble Level",

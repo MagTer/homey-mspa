@@ -66,23 +66,23 @@ export default class MspaDriver extends Homey.Driver {
       });
   }
 
-  async onPair(session) {
+  async onPair(session: any) {
     this.log('M-Spa driver pairing started');
 
     // Closure variables to persist state across pair steps
-    let region = null;
-    let client = null;
-    let email = null;
-    let password = null;
+    let region: string | null = null;
+    let client: MspaApiClient | null = null;
+    let email: string | null = null;
+    let password: string | null = null;
 
     // Step 1: select_region - Store user's region choice
-    session.setHandler('select_region', async (regionCode) => {
+    session.setHandler('select_region', async (regionCode: string) => {
       this.log(`Region selected: ${regionCode}`);
       region = regionCode;
     });
 
     // Step 2: login_credentials - Authenticate with credentials
-    session.setHandler('login', async (data) => {
+    session.setHandler('login', async (data: any) => {
       this.log('Attempting login with credentials');
       
       if (!data.username || !data.password) {
@@ -96,12 +96,12 @@ export default class MspaDriver extends Homey.Driver {
         client = new MspaApiClient({
           email: data.username,
           password: data.password,
-          region: region,
+          region: region as any,
         });
 
         const token = await client.authenticate();
         this.log('Authentication successful');
-      } catch (error) {
+      } catch (error: any) {
         this.log(`Authentication failed: ${error.message}`);
         throw error;
       }
@@ -121,7 +121,7 @@ export default class MspaDriver extends Homey.Driver {
 
         // Get already paired devices to filter out duplicates
         const pairedDevices = this.getDevices();
-        const pairedDeviceIds = pairedDevices.map(d => d.getData().id);
+        const pairedDeviceIds = pairedDevices.map(d => (d.getData() as any).id);
 
         this.log(`Found ${pairedDeviceIds.length} already paired devices`);
 
@@ -140,12 +140,14 @@ export default class MspaDriver extends Homey.Driver {
           },
           store: {
             product_id: device.product_id,
+            product_series: device.product_series,
+            product_model: device.product_model,
             region: region,
             email: email,
-            passwordHash: crypto.createHash('md5').update(password).digest('hex'),
+            passwordHash: crypto.createHash('md5').update(password!).digest('hex'),
           },
         }));
-      } catch (error) {
+      } catch (error: any) {
         this.log(`Failed to fetch devices: ${error.message}`);
         throw error;
       }
