@@ -1,0 +1,13 @@
+{
+  "title": {
+    "en": "The heater is active",
+    "no": "Varmeren er aktiv"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}

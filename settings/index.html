@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; color: #333; }
+    .field { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+    input, select { 
+      width: 100%; padding: 12px; border: 1px solid #ddd; 
+      border-radius: 8px; box-sizing: border-box; font-size: 16px;
+      background-color: #f9f9f9;
+    }
+    input:focus { border-color: #0084ff; outline: none; background-color: #fff; }
+    .button {
+      background-color: #0084ff; color: white; padding: 14px; border: none;
+      border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;
+      font-size: 16px; font-weight: bold;
+    }
+    .button:active { background-color: #005fcc; }
+    #status-msg { margin-top: 20px; font-size: 12px; color: #888; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="field">
+    <label>M-Spa Account Email</label>
+    <input type="text" id="email" placeholder="email@example.com" />
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" />
+  </div>
+  <div class="field">
+    <label>API Region</label>
+    <select id="region">
+      <option value="row">Rest of World (ROW)</option>
+      <option value="us">United States (US)</option>
+      <option value="ch">China (CH)</option>
+    </select>
+  </div>
+  <button class="button" id="save-btn">Save Settings</button>
+  
+  <div id="status-msg">Connecting to Homey...</div>
+
+  <script type="text/javascript">
+    function onHomeyReady(homey) {
+      const statusMsg = document.getElementById('status-msg');
+      statusMsg.innerText = 'Connected to Homey';
+
+      // Get current values
+      homey.get('email', (err, val) => { if(val) document.getElementById('email').value = val; });
+      homey.get('password', (err, val) => { if(val) document.getElementById('password').value = val; });
+      homey.get('region', (err, val) => { if(val) document.getElementById('region').value = val; });
+
+      document.getElementById('save-btn').onclick = function() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const region = document.getElementById('region').value;
+
+        if (!email || !password) {
+          homey.alert('Please enter both email and password.');
+          return;
+        }
+
+        homey.set('email', email);
+        homey.set('password', password);
+        homey.set('region', region);
+        
+        homey.alert('Settings saved! You can now add your M-Spa device.', () => {
+          // Optional: close the settings page
+        });
+      };
+
+      // Critical: remove the loading spinner
+      homey.ready();
+    }
+  </script>
+</body>
+</html>

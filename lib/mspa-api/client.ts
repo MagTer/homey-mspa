@@ -77,7 +77,7 @@ export class MspaApiClient {
       sign,
       'content-type': 'application/json',
       'user-agent': 'okhttp/4.9.0',
-      'push_type': 'Android',
+      'push_type': 'android',
     };
 
     if (token) {
@@ -197,8 +197,11 @@ export class MspaApiClient {
       token: string;
       email: string;
     }>('POST', '/api/enduser/get_token/', {
+      account: this.email,
       email: this.email,
       password: this.passwordHash,
+      app_id: MspaApiClient.APP_ID,
+      push_type: 'android',
     });
 
     if (!response.data.token) {

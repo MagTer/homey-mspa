@@ -2,7 +2,11 @@
   "name": {
     "en": "M-Spa Device"
   },
-  "class": "hotwater",
+  "class": "thermostat",
+  "platforms": [
+    "local",
+    "cloud"
+  ],
   "capabilities": [
     "measure_temperature",
     "target_temperature",
@@ -77,5 +81,21 @@
       }
     }
   },
-  "images": {}
+  "images": {
+    "large": "drivers/mspa/assets/images/large.png",
+    "small": "drivers/mspa/assets/images/small.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ]
 }

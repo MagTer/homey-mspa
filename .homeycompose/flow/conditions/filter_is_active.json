@@ -1,0 +1,13 @@
+{
+  "title": {
+    "en": "The filter is active",
+    "no": "Filteret er aktivt"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}

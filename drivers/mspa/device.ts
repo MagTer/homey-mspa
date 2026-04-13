@@ -3,6 +3,7 @@ import { MspaApiClient } from '../../lib/mspa-api/client.js';
 import { parseShadow } from '../../lib/mspa-api/shadow.js';
 import type { ParsedShadow } from '../../lib/mspa-api/types.js';
 import { getProfile } from '../../lib/mspa-api/profiles.js';
+import MspaApp from '../../app.js';
 
 export default class MspaDevice extends Homey.Device {
   private apiClient: MspaApiClient | null = null;
@@ -31,9 +32,17 @@ export default class MspaDevice extends Homey.Device {
     const { region, email, passwordHash, product_id, product_series, product_model } = this.getStore();
     const deviceId = this.getData().id;
 
-    if (!region || !email || !passwordHash || !product_id) {
-      this.log('Missing store credentials');
-      this.setUnavailable('Configuration incomplete. Please re-pair the device.');
+    // Use app settings if available, otherwise fallback to store
+    const settingsEmail = this.homey.settings.get('email');
+    const settingsPassword = this.homey.settings.get('password');
+    const settingsRegion = this.homey.settings.get('region');
+
+    const activeEmail = settingsEmail || email;
+    const activeRegion = settingsRegion || region;
+
+    if (!activeRegion || !activeEmail || (!passwordHash && !settingsPassword) || !product_id) {
+      this.log('Missing store credentials or app settings');
+      this.setUnavailable('Configuration incomplete. Please configure the app settings.');
       return;
     }
 
@@ -58,13 +67,17 @@ export default class MspaDevice extends Homey.Device {
       await this.removeCapability('bubble_level');
     }
 
-    // Construct API client with passwordHash
+    // Construct API client
     try {
-      this.apiClient = new MspaApiClient({ email, passwordHash, region });
+      if (settingsEmail && settingsPassword && settingsRegion) {
+        this.apiClient = new MspaApiClient({ email: settingsEmail, password: settingsPassword, region: settingsRegion });
+      } else {
+        this.apiClient = new MspaApiClient({ email: activeEmail, passwordHash: passwordHash, region: activeRegion });
+      }
       this.log('API client constructed');
     } catch (err: any) {
       this.log(`Failed to construct API client: ${err.message}`);
-      this.setUnavailable('Configuration error. Please re-pair the device.');
+      this.setUnavailable('Configuration error. Please check app settings.');
       return;
     }
 
@@ -75,7 +88,7 @@ export default class MspaDevice extends Homey.Device {
       this.consecutiveFailures = 0;
     } catch (err: any) {
       this.log(`Authentication failed: ${err.message}`);
-      this.setUnavailable('Authentication failed. Check credentials.');
+      this.setUnavailable('Authentication failed. Check app settings.');
       return;
     }
 

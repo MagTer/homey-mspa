@@ -1,0 +1,13 @@
+{
+  "title": {
+    "en": "The spa went offline",
+    "no": "Spaet gikk av nett"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}
