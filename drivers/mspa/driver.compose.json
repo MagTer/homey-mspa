@@ -1,0 +1,81 @@
+{
+  "name": {
+    "en": "M-Spa Device"
+  },
+  "class": "hotwater",
+  "capabilities": [
+    "measure_temperature",
+    "target_temperature",
+    "onoff.heater",
+    "onoff.filter",
+    "onoff.jets",
+    "onoff.ozone",
+    "onoff.uvc",
+    "bubble_level",
+    "heater_active",
+    "filter_active"
+  ],
+  "capabilitiesOptions": {
+    "measure_temperature": {
+      "title": {
+        "en": "Water Temperature",
+        "no": "Vanntemperatur"
+      }
+    },
+    "target_temperature": {
+      "title": {
+        "en": "Target Temperature",
+        "no": "Måltemperatur"
+      }
+    },
+    "onoff.heater": {
+      "title": {
+        "en": "Heater",
+        "no": "Varmer"
+      }
+    },
+    "onoff.filter": {
+      "title": {
+        "en": "Filter",
+        "no": "Filter"
+      }
+    },
+    "onoff.jets": {
+      "title": {
+        "en": "Jets",
+        "no": "Dyser"
+      }
+    },
+    "onoff.ozone": {
+      "title": {
+        "en": "Ozone",
+        "no": "Ozon"
+      }
+    },
+    "onoff.uvc": {
+      "title": {
+        "en": "UVC",
+        "no": "UVC"
+      }
+    },
+    "bubble_level": {
+      "title": {
+        "en": "Bubble Level",
+        "no": "Boblenivå"
+      }
+    },
+    "heater_active": {
+      "title": {
+        "en": "Heating",
+        "no": "Varmer opp"
+      }
+    },
+    "filter_active": {
+      "title": {
+        "en": "Filtering",
+        "no": "Filtrerer"
+      }
+    }
+  },
+  "images": {}
+}
