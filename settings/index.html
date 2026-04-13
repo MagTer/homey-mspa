@@ -18,7 +18,10 @@
       font-size: 16px; font-weight: bold;
     }
     .button:active { background-color: #005fcc; }
+    .button:disabled { background-color: #ccc; cursor: not-allowed; }
     #status-msg { margin-top: 20px; font-size: 12px; color: #888; text-align: center; }
+    .error { color: #d32f2f; font-weight: bold; }
+    .success { color: #2e7d32; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -38,13 +41,14 @@
       <option value="ch">China (CH)</option>
     </select>
   </div>
-  <button class="button" id="save-btn">Save Settings</button>
+  <button class="button" id="save-btn">Verify and Save</button>
   
   <div id="status-msg">Connecting to Homey...</div>
 
   <script type="text/javascript">
     function onHomeyReady(homey) {
       const statusMsg = document.getElementById('status-msg');
+      const saveBtn = document.getElementById('save-btn');
       statusMsg.innerText = 'Connected to Homey';
 
       // Get current values
@@ -52,7 +56,7 @@
       homey.get('password', (err, val) => { if(val) document.getElementById('password').value = val; });
       homey.get('region', (err, val) => { if(val) document.getElementById('region').value = val; });
 
-      document.getElementById('save-btn').onclick = function() {
+      saveBtn.onclick = async function() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const region = document.getElementById('region').value;
@@ -62,13 +66,36 @@
           return;
         }
 
-        homey.set('email', email);
-        homey.set('password', password);
-        homey.set('region', region);
-        
-        homey.alert('Settings saved! You can now add your M-Spa device.', () => {
-          // Optional: close the settings page
-        });
+        // Update UI to show we are working
+        saveBtn.disabled = true;
+        statusMsg.innerText = 'Verifying credentials...';
+        statusMsg.className = '';
+
+        try {
+          // Call the backend API to validate credentials
+          const result = await homey.api('POST', '/validate-credentials', {
+            email,
+            password,
+            region
+          });
+
+          if (result && result.success) {
+            // Save to settings only after verification
+            homey.set('email', email);
+            homey.set('password', password);
+            homey.set('region', region);
+            
+            statusMsg.innerText = 'Success! Credentials verified and saved.';
+            statusMsg.className = 'success';
+            homey.alert('Success! Your M-Spa account is verified and saved.');
+          }
+        } catch (err) {
+          statusMsg.innerText = 'Error: ' + (err.message || err);
+          statusMsg.className = 'error';
+          homey.alert('Failed to verify credentials: ' + (err.message || err));
+        } finally {
+          saveBtn.disabled = false;
+        }
       };
 
       // Critical: remove the loading spinner
