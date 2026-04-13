@@ -1,0 +1,20 @@
+{
+  "M-Spa Hot Tub": {},
+  "capabilities": {
+    "bubble_level": {
+      "name": "Bubble Level",
+      "values": {
+        "off": "Off",
+        "1": "Level 1",
+        "2": "Level 2",
+        "3": "Level 3"
+      }
+    },
+    "heater_active": {
+      "name": "Heater Active"
+    },
+    "filter_active": {
+      "name": "Filter Active"
+    }
+  }
+}

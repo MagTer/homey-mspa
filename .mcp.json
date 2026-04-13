@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gsd-workflow": {
+      "command": "/home/magnus/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/home/magnus/.nvm/versions/node/v22.22.2/lib/node_modules/gsd-pi/packages/mcp-server/dist/cli.js"
+      ],
+      "cwd": "/home/magnus/dev/homey-mspa",
+      "env": {
+        "GSD_CLI_PATH": "/home/magnus/.nvm/versions/node/v22.22.2/bin/gsd",
+        "GSD_WORKFLOW_EXECUTORS_MODULE": "/home/magnus/.gsd/agent/extensions/gsd/tools/workflow-tool-executors.js",
+        "GSD_WORKFLOW_WRITE_GATE_MODULE": "/home/magnus/.gsd/agent/extensions/gsd/bootstrap/write-gate.js",
+        "GSD_PERSIST_WRITE_GATE_STATE": "1",
+        "GSD_WORKFLOW_PROJECT_ROOT": "/home/magnus/dev/homey-mspa"
+      }
+    }
+  }
+}
