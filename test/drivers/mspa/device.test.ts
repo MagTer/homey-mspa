@@ -29,6 +29,22 @@ const {
     flow: {
       getDeviceTriggerCard: vi.fn((id) => mockTriggerCards[id]),
     },
+    app: {
+      getApiClient: vi.fn(() => ({
+        authenticate: mockAuthenticate,
+        getDevices: vi.fn(),
+        getThingShadow: mockGetThingShadow,
+        sendCommand: mockSendCommand,
+      })),
+    },
+    settings: {
+      get: vi.fn((key) => {
+        if (key === 'email') return 'test@example.com';
+        if (key === 'password') return 'test-password';
+        if (key === 'region') return 'row';
+        return null;
+      }),
+    },
   };
 
   return { 
@@ -44,6 +60,15 @@ const {
 // Mock homey
 vi.mock('homey', () => {
   const Device = class {
+    public homey: any;
+    public _store: any;
+    public _data: any;
+    public _capabilities: any;
+    public _available: boolean;
+    public _logs: string[];
+    public _lastUnavailableMessage?: string;
+    public _capabilityListeners: any;
+
     constructor() {
       this._store = {};
       this._data = { id: 'test-device-id' };
@@ -62,15 +87,6 @@ vi.mock('homey', () => {
       this._available = true;
       this._logs = [];
       this.homey = mockHomeyDevice;
-      this.hasCapability = vi.fn((capabilityId) => {
-        const has = this._capabilities[capabilityId] !== undefined;
-        // console.log(`hasCapability(${capabilityId}) -> ${has}`);
-        return has;
-      });
-      this.removeCapability = vi.fn(async (capabilityId) => {
-        delete this._capabilities[capabilityId];
-        return Promise.resolve();
-      });
     }
 
     getStore() { return this._store; }
@@ -81,15 +97,13 @@ vi.mock('homey', () => {
     setCapabilityValue(capabilityId, value) { this._capabilities[capabilityId] = value; return Promise.resolve(); }
     getCapabilityValue(capabilityId) { return this._capabilities[capabilityId]; }
     hasCapability(capabilityId) { return this._capabilities[capabilityId] !== undefined; }
-    async removeCapability(capabilityId) { this._capabilities[capabilityId] = undefined; return Promise.resolve(); }
-    hasCapability(capabilityId) { return this._capabilities[capabilityId] !== undefined; }
     async removeCapability(capabilityId) { delete this._capabilities[capabilityId]; return Promise.resolve(); }
     registerCapabilityListener(capabilityId, handler) {
       if (!this._capabilityListeners) this._capabilityListeners = {};
       this._capabilityListeners[capabilityId] = handler;
       return Promise.resolve();
     }
-    setAvailable(message) { this._available = true; this._lastAvailableMessage = message; return Promise.resolve(); }
+    setAvailable(message) { this._available = true; return Promise.resolve(); }
     setUnavailable(message) { this._available = false; this._lastUnavailableMessage = message; return Promise.resolve(); }
     isAvailable() { return this._available; }
     log(...args) { this._logs.push(args.join(' ')); }
@@ -158,9 +172,6 @@ describe('MspaDevice', () => {
     
     // Set up store with credentials
     (device as any)._store = {
-      region: 'row',
-      email: 'test@example.com',
-      passwordHash: 'test-password-hash',
       product_id: 'test-product-id',
       product_series: 'Frame', // Supports all capabilities
     };
@@ -177,7 +188,7 @@ describe('MspaDevice', () => {
   });
 
   describe('Initialization (onInit)', () => {
-    it('should construct client with passwordHash, authenticate, fetch shadow, and sync capabilities', async () => {
+    it('should fetch shadow and sync capabilities during onInit', async () => {
       // Setup: Mock successful shadow fetch
       mockGetThingShadow.mockResolvedValue({
         water_temperature: 76,
@@ -208,9 +219,6 @@ describe('MspaDevice', () => {
       // Act: Call onInit
       await device.onInit();
 
-      // Assert: Verify client was constructed with passwordHash
-      expect(mockAuthenticate).toHaveBeenCalledTimes(1);
-
       // Verify shadow was fetched
       expect(mockGetThingShadow).toHaveBeenCalledWith('test-device-id', 'test-product-id');
 
@@ -233,28 +241,30 @@ describe('MspaDevice', () => {
       expect(device.isAvailable()).toBe(true);
     });
 
-    it('should mark device unavailable if credentials are missing', async () => {
-      // Setup: Missing credentials
-      (device as any)._store = { region: 'row' };
+    it('should mark device unavailable if app settings are missing', async () => {
+      // Setup: Missing app settings
+      mockHomeyDevice.app.getApiClient.mockReturnValue(null);
 
       // Act
       await device.onInit();
 
       // Assert
       expect(device.isAvailable()).toBe(false);
-      expect(device._lastUnavailableMessage).toContain('Configuration incomplete');
+      expect(device._lastUnavailableMessage).toContain('Please configure');
     });
 
-    it('should mark device unavailable if authentication fails', async () => {
+    it('should mark device unavailable if API calls fail repeatedly', async () => {
       // Setup
-      mockAuthenticate.mockRejectedValue(new Error('Authentication failed'));
-
-      // Act
-      await device.onInit();
+      mockGetThingShadow.mockRejectedValue(new Error('API failure'));
+      
+      // Simulate 3 failures
+      await device.onInit(); // Failure 1
+      await device.performPoll(); // Failure 2
+      await device.performPoll(); // Failure 3
 
       // Assert
       expect(device.isAvailable()).toBe(false);
-      expect(device._lastUnavailableMessage).toContain('Authentication failed');
+      expect(device._lastUnavailableMessage).toContain('Could not reach your spa');
     });
 
     it('should mark device unavailable after 3 consecutive poll failures', async () => {
@@ -838,9 +848,6 @@ describe('MspaDevice', () => {
       // Create fresh device
       const freshDevice = new MspaDevice();
       (freshDevice as any)._store = {
-        region: 'row',
-        email: 'test@example.com',
-        passwordHash: 'test-password-hash',
         product_id: 'test-product-id',
       };
       (freshDevice as any)._data = { id: 'test-device-id' };
@@ -989,9 +996,6 @@ describe('MspaDevice', () => {
     it('should remove unsupported capabilities for a Delight model', async () => {
       // Setup: Delight model (Bubbles only)
       (device as any)._store = {
-        region: 'row',
-        email: 'test@example.com',
-        passwordHash: 'test-password-hash',
         product_id: 'test-product-id',
         product_series: 'Delight',
         product_model: 'D-01',
@@ -1018,9 +1022,6 @@ describe('MspaDevice', () => {
     it('should keep all capabilities for a Frame model', async () => {
       // Setup: Frame model (All features)
       (device as any)._store = {
-        region: 'row',
-        email: 'test@example.com',
-        passwordHash: 'test-password-hash',
         product_id: 'test-product-id',
         product_series: 'Frame',
         product_model: 'F-01',
@@ -1044,9 +1045,6 @@ describe('MspaDevice', () => {
     it('should use default profile for unknown models', async () => {
       // Setup: Unknown model
       (device as any)._store = {
-        region: 'row',
-        email: 'test@example.com',
-        passwordHash: 'test-password-hash',
         product_id: 'test-product-id',
         product_series: 'Unknown-123',
       };

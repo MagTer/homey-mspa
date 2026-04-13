@@ -6,7 +6,6 @@ import { getProfile } from '../../lib/mspa-api/profiles.js';
 import MspaApp from '../../app.js';
 
 export default class MspaDevice extends Homey.Device {
-  private apiClient: MspaApiClient | null = null;
   private idlePollTimer: NodeJS.Timeout | null = null;
   private rapidPollTimer: NodeJS.Timeout | null = null;
   private consecutiveFailures: number = 0;
@@ -28,24 +27,9 @@ export default class MspaDevice extends Homey.Device {
     this.triggerCards.device_online = this.homey.flow.getDeviceTriggerCard('device_online');
     this.triggerCards.device_offline = this.homey.flow.getDeviceTriggerCard('device_offline');
 
-    // Read stored credentials
-    const { region, email, passwordHash, product_id, product_series, product_model } = this.getStore();
-    const deviceId = this.getData().id;
-
-    // Use app settings if available, otherwise fallback to store
-    const settingsEmail = this.homey.settings.get('email');
-    const settingsPassword = this.homey.settings.get('password');
-    const settingsRegion = this.homey.settings.get('region');
-
-    const activeEmail = settingsEmail || email;
-    const activeRegion = settingsRegion || region;
-
-    if (!activeRegion || !activeEmail || (!passwordHash && !settingsPassword) || !product_id) {
-      this.log('Missing store credentials or app settings');
-      this.setUnavailable('Configuration incomplete. Please configure the app settings.');
-      return;
-    }
-
+    // Read stored non-sensitive data
+    const { product_id, product_series, product_model } = this.getStore();
+    
     // Apply product profile filtering
     const profile = getProfile(product_series, product_model);
     this.log(`Applying profile: ${profile.name} (Series: ${product_series}, Model: ${product_model})`);
@@ -67,42 +51,8 @@ export default class MspaDevice extends Homey.Device {
       await this.removeCapability('bubble_level');
     }
 
-    // Construct API client
-    try {
-      if (settingsEmail && settingsPassword && settingsRegion) {
-        this.apiClient = new MspaApiClient({ email: settingsEmail, password: settingsPassword, region: settingsRegion });
-      } else {
-        this.apiClient = new MspaApiClient({ email: activeEmail, passwordHash: passwordHash, region: activeRegion });
-      }
-      this.log('API client constructed');
-    } catch (err: any) {
-      this.log(`Failed to construct API client: ${err.message}`);
-      this.setUnavailable('Configuration error. Please check app settings.');
-      return;
-    }
-
-    // Authenticate
-    try {
-      await this.apiClient.authenticate();
-      this.log('Authenticated successfully');
-      this.consecutiveFailures = 0;
-    } catch (err: any) {
-      this.log(`Authentication failed: ${err.message}`);
-      this.setUnavailable('Authentication failed. Check app settings.');
-      return;
-    }
-
-    // Fetch initial shadow and sync
-    try {
-      const shadow = await this.apiClient.getThingShadow(deviceId, product_id);
-      this.consecutiveFailures = 0;
-      this.setAvailable();
-      this.syncFromShadow(parseShadow(shadow));
-      this.log('Initial shadow synced');
-    } catch (err: any) {
-      this.log(`Failed to fetch initial shadow: ${err.message}`);
-      this.handleApiError();
-    }
+    // Initial sync
+    await this.performPoll();
 
     // Register capability listeners for all controllable capabilities
     this.registerCapabilityListener('target_temperature', this.handleTargetTemperature.bind(this));
@@ -118,7 +68,14 @@ export default class MspaDevice extends Homey.Device {
     // Start idle polling (15-minute interval)
     this.startIdlePolling();
 
-    this.log('M-Spa device initialized and available');
+    this.log('M-Spa device initialized');
+  }
+
+  /**
+   * Helper to get the centralized API client from the app instance
+   */
+  private getApiClient(): MspaApiClient | null {
+    return (this.homey.app as MspaApp).getApiClient();
   }
 
   /**
@@ -169,6 +126,8 @@ export default class MspaDevice extends Homey.Device {
     if (shadow.fault && shadow.fault !== '') {
       this.setUnavailable(`Spa reported fault: ${shadow.fault}`);
       this.log(`Spa fault detected: ${shadow.fault}`);
+    } else if (this.wasAvailable) {
+      this.setAvailable();
     }
 
     // Update previous shadow for next sync
@@ -182,17 +141,17 @@ export default class MspaDevice extends Homey.Device {
     this.log(`target_temperature changed to ${value}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     // API uses 2x values
     const apiValue = value * 2;
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { temperature_setting: apiValue });
+      await apiClient.sendCommand(deviceId, product_id, { temperature_setting: apiValue });
       this.log('Temperature command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -208,14 +167,14 @@ export default class MspaDevice extends Homey.Device {
     this.log(`heater changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { heater_state: value ? 1 : 0 });
+      await apiClient.sendCommand(deviceId, product_id, { heater_state: value ? 1 : 0 });
       this.log('Heater command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -231,10 +190,10 @@ export default class MspaDevice extends Homey.Device {
     this.log(`filter changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     // D003: Filter constraint - if filter is turned off, turn off heater
@@ -243,7 +202,7 @@ export default class MspaDevice extends Homey.Device {
       if (heaterValue) {
         this.log('Filter constraint: turning off heater when filter turns off');
         try {
-          await this.apiClient!.sendCommand(deviceId, product_id, { heater_state: 0 });
+          await apiClient.sendCommand(deviceId, product_id, { heater_state: 0 });
           this.setCapabilityValue('onoff.heater', false);
           this.log('Heater turned off via filter constraint');
         } catch (err: any) {
@@ -253,7 +212,7 @@ export default class MspaDevice extends Homey.Device {
     }
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { filter_state: value ? 1 : 0 });
+      await apiClient.sendCommand(deviceId, product_id, { filter_state: value ? 1 : 0 });
       this.log('Filter command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -269,17 +228,17 @@ export default class MspaDevice extends Homey.Device {
     this.log(`bubble_level changed to ${value}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     // Convert enum string to number: 'off' -> 0, '1' -> 1, '2' -> 2, '3' -> 3
     const apiValue = value === 'off' ? 0 : parseInt(value, 10);
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { bubble_level: apiValue });
+      await apiClient.sendCommand(deviceId, product_id, { bubble_level: apiValue });
       this.log('Bubble level command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -295,14 +254,14 @@ export default class MspaDevice extends Homey.Device {
     this.log(`jets changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { jet_state: value ? 1 : 0 });
+      await apiClient.sendCommand(deviceId, product_id, { jet_state: value ? 1 : 0 });
       this.log('Jets command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -318,14 +277,14 @@ export default class MspaDevice extends Homey.Device {
     this.log(`ozone changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { ozone_state: value ? 1 : 0 });
+      await apiClient.sendCommand(deviceId, product_id, { ozone_state: value ? 1 : 0 });
       this.log('Ozone command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -341,14 +300,14 @@ export default class MspaDevice extends Homey.Device {
     this.log(`uvc changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id) {
-      this.log('Missing device or product ID');
-      return;
+    if (!apiClient) {
+      throw new Error('Please configure your M-Spa account in app settings');
     }
 
     try {
-      await this.apiClient!.sendCommand(deviceId, product_id, { uvc_state: value ? 1 : 0 });
+      await apiClient.sendCommand(deviceId, product_id, { uvc_state: value ? 1 : 0 });
       this.log('UVC command sent');
       this.startRapidPolling();
     } catch (err: any) {
@@ -421,14 +380,16 @@ export default class MspaDevice extends Homey.Device {
   async performPoll() {
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
+    const apiClient = this.getApiClient();
 
-    if (!deviceId || !product_id || !this.apiClient) {
-      this.log('Missing device, product ID, or API client');
+    if (!apiClient) {
+      this.log('Missing API client (account not configured)');
+      this.setUnavailable('Please configure your M-Spa account in app settings.');
       return;
     }
 
     try {
-      const shadow = await this.apiClient.getThingShadow(deviceId, product_id);
+      const shadow = await apiClient.getThingShadow(deviceId, product_id);
       this.consecutiveFailures = 0;
       
       if (!this.wasAvailable) {
@@ -438,7 +399,6 @@ export default class MspaDevice extends Homey.Device {
         this.wasAvailable = true;
       }
       
-      this.setAvailable();
       this.syncFromShadow(parseShadow(shadow));
       this.log('Poll successful');
     } catch (err: any) {

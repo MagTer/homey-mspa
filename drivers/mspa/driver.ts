@@ -1,7 +1,6 @@
 import Homey from 'homey';
 import { MspaApiClient } from '../../lib/mspa-api/client.js';
 import MspaApp from '../../app.js';
-import * as crypto from 'node:crypto';
 
 export default class MspaDriver extends Homey.Driver {
   async onInit() {
@@ -92,13 +91,6 @@ export default class MspaDriver extends Homey.Driver {
           device => !pairedDeviceIds.includes(device.device_id)
         );
 
-        // Store credentials in the device store so it remains independent if app settings change
-        // OR we can read from app settings in MspaDevice too.
-        // It's safer to read from app settings to keep it synced.
-        const email = this.homey.settings.get('email');
-        const password = this.homey.settings.get('password');
-        const region = this.homey.settings.get('region');
-
         return availableDevices.map(device => ({
           name: device.device_alias,
           data: {
@@ -108,9 +100,8 @@ export default class MspaDriver extends Homey.Driver {
             product_id: device.product_id,
             product_series: device.product_series,
             product_model: device.product_model,
-            region: region,
-            email: email,
-            passwordHash: crypto.createHash('md5').update(password).digest('hex'),
+            // Sensitive credentials (email, passwordHash, region) are no longer stored per-device
+            // They are strictly resolved from global app settings.
           },
         }));
       } catch (error: any) {
