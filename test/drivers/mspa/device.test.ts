@@ -47,10 +47,30 @@ vi.mock('homey', () => {
     constructor() {
       this._store = {};
       this._data = { id: 'test-device-id' };
-      this._capabilities = {};
+      this._capabilities = {
+        'measure_temperature': 0,
+        'target_temperature': 0,
+        'onoff.heater': false,
+        'onoff.filter': false,
+        'onoff.jets': false,
+        'onoff.ozone': false,
+        'onoff.uvc': false,
+        'bubble_level': 'off',
+        'heater_active': false,
+        'filter_active': false,
+      };
       this._available = true;
       this._logs = [];
       this.homey = mockHomeyDevice;
+      this.hasCapability = vi.fn((capabilityId) => {
+        const has = this._capabilities[capabilityId] !== undefined;
+        // console.log(`hasCapability(${capabilityId}) -> ${has}`);
+        return has;
+      });
+      this.removeCapability = vi.fn(async (capabilityId) => {
+        delete this._capabilities[capabilityId];
+        return Promise.resolve();
+      });
     }
 
     getStore() { return this._store; }
@@ -60,6 +80,10 @@ vi.mock('homey', () => {
     setData(key, value) { return Promise.resolve(); }
     setCapabilityValue(capabilityId, value) { this._capabilities[capabilityId] = value; return Promise.resolve(); }
     getCapabilityValue(capabilityId) { return this._capabilities[capabilityId]; }
+    hasCapability(capabilityId) { return this._capabilities[capabilityId] !== undefined; }
+    async removeCapability(capabilityId) { this._capabilities[capabilityId] = undefined; return Promise.resolve(); }
+    hasCapability(capabilityId) { return this._capabilities[capabilityId] !== undefined; }
+    async removeCapability(capabilityId) { delete this._capabilities[capabilityId]; return Promise.resolve(); }
     registerCapabilityListener(capabilityId, handler) {
       if (!this._capabilityListeners) this._capabilityListeners = {};
       this._capabilityListeners[capabilityId] = handler;
@@ -138,9 +162,9 @@ describe('MspaDevice', () => {
       email: 'test@example.com',
       passwordHash: 'test-password-hash',
       product_id: 'test-product-id',
+      product_series: 'Frame', // Supports all capabilities
     };
     (device as any)._data = { id: 'test-device-id' };
-    (device as any)._capabilities = {};
     (device as any)._available = true;
     (device as any).consecutiveFailures = 0;
     (device as any).isRapidPolling = false;
@@ -942,6 +966,102 @@ describe('MspaDevice', () => {
       
       expect(device.isRapidPolling).toBe(false);
       expect(mockHomeyDevice.setInterval).toHaveBeenCalled();
+    });
+  });
+
+  describe('Product Profiling and Capability Filtering', () => {
+    beforeEach(() => {
+      mockParseShadow.mockReturnValue({
+        water_temperature: 38,
+        temperature_setting: 40,
+        heater_state: true,
+        filter_state: true,
+        bubble_state: true,
+        bubble_level: 2,
+        uvc_state: true,
+        ozone_state: true,
+        jet_state: true,
+        fault: '',
+      });
+      mockGetThingShadow.mockResolvedValue({});
+    });
+
+    it('should remove unsupported capabilities for a Delight model', async () => {
+      // Setup: Delight model (Bubbles only)
+      (device as any)._store = {
+        region: 'row',
+        email: 'test@example.com',
+        passwordHash: 'test-password-hash',
+        product_id: 'test-product-id',
+        product_series: 'Delight',
+        product_model: 'D-01',
+      };
+      
+      // Initially has all capabilities
+      (device as any)._capabilities['onoff.jets'] = false;
+      (device as any)._capabilities['onoff.ozone'] = false;
+      (device as any)._capabilities['onoff.uvc'] = false;
+      (device as any)._capabilities['bubble_level'] = 'off';
+      (device as any)._capabilities['onoff.heater'] = false;
+
+      // Act
+      await device.onInit();
+
+      // Assert
+      expect(device.getCapabilityValue('onoff.jets')).toBeUndefined();
+      expect(device.getCapabilityValue('onoff.ozone')).toBeUndefined();
+      expect(device.getCapabilityValue('onoff.uvc')).toBeUndefined();
+      expect(device.hasCapability('bubble_level')).toBe(true); // Delight has bubbles
+      expect(device.hasCapability('onoff.heater')).toBe(true);
+    });
+
+    it('should keep all capabilities for a Frame model', async () => {
+      // Setup: Frame model (All features)
+      (device as any)._store = {
+        region: 'row',
+        email: 'test@example.com',
+        passwordHash: 'test-password-hash',
+        product_id: 'test-product-id',
+        product_series: 'Frame',
+        product_model: 'F-01',
+      };
+      
+      (device as any)._capabilities['onoff.jets'] = false;
+      (device as any)._capabilities['onoff.ozone'] = false;
+      (device as any)._capabilities['onoff.uvc'] = false;
+      (device as any)._capabilities['bubble_level'] = 'off';
+
+      // Act
+      await device.onInit();
+
+      // Assert
+      expect(device.hasCapability('onoff.jets')).toBe(true);
+      expect(device.hasCapability('onoff.ozone')).toBe(true);
+      expect(device.hasCapability('onoff.uvc')).toBe(true);
+      expect(device.hasCapability('bubble_level')).toBe(true);
+    });
+
+    it('should use default profile for unknown models', async () => {
+      // Setup: Unknown model
+      (device as any)._store = {
+        region: 'row',
+        email: 'test@example.com',
+        passwordHash: 'test-password-hash',
+        product_id: 'test-product-id',
+        product_series: 'Unknown-123',
+      };
+      
+      (device as any)._capabilities['onoff.jets'] = false;
+      (device as any)._capabilities['onoff.ozone'] = false;
+      (device as any)._capabilities['onoff.uvc'] = false;
+
+      // Act
+      await device.onInit();
+
+      // Assert: Default profile (no jets/ozone/uvc)
+      expect(device.hasCapability('onoff.jets')).toBe(false);
+      expect(device.hasCapability('onoff.ozone')).toBe(false);
+      expect(device.hasCapability('onoff.uvc')).toBe(false);
     });
   });
 });

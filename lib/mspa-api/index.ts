@@ -3,9 +3,10 @@
  * Standalone API client for M-Spa cloud API with authentication, throttling, and error handling
  */
 
-export { MspaApiClient } from './client';
-export { parseShadow } from './shadow';
-export { MspaThrottle } from './throttle';
+export { MspaApiClient } from './client.js';
+export { parseShadow } from './shadow.js';
+export { MspaThrottle } from './throttle.js';
 
-export * from './types';
-export * from './errors';
+export * from './types.js';
+export * from './errors.js';
+export * from './profiles.js';

@@ -2,19 +2,20 @@ import Homey from 'homey';
 import { MspaApiClient } from '../../lib/mspa-api/client.js';
 import { parseShadow } from '../../lib/mspa-api/shadow.js';
 import type { ParsedShadow } from '../../lib/mspa-api/types.js';
+import { getProfile } from '../../lib/mspa-api/profiles.js';
 
 export default class MspaDevice extends Homey.Device {
-  constructor(...args) {
+  private apiClient: MspaApiClient | null = null;
+  private idlePollTimer: NodeJS.Timeout | null = null;
+  private rapidPollTimer: NodeJS.Timeout | null = null;
+  private consecutiveFailures: number = 0;
+  private isRapidPolling: boolean = false;
+  private previousShadow: ParsedShadow | null = null;
+  private wasAvailable: boolean = true;
+  private triggerCards: Record<string, any> = {};
+
+  constructor(...args: any[]) {
     super(...args);
-    this.apiClient = null;
-    this.idlePollTimer = null;
-    this.rapidPollTimer = null;
-    this.rapidPollEndTime = null;
-    this.consecutiveFailures = 0;
-    this.isRapidPolling = false;
-    this.previousShadow = null;
-    this.wasAvailable = true;
-    this.triggerCards = {};
   }
 
   async onInit() {
@@ -27,7 +28,7 @@ export default class MspaDevice extends Homey.Device {
     this.triggerCards.device_offline = this.homey.flow.getDeviceTriggerCard('device_offline');
 
     // Read stored credentials
-    const { region, email, passwordHash, product_id } = this.getStore();
+    const { region, email, passwordHash, product_id, product_series, product_model } = this.getStore();
     const deviceId = this.getData().id;
 
     if (!region || !email || !passwordHash || !product_id) {
@@ -36,11 +37,32 @@ export default class MspaDevice extends Homey.Device {
       return;
     }
 
+    // Apply product profile filtering
+    const profile = getProfile(product_series, product_model);
+    this.log(`Applying profile: ${profile.name} (Series: ${product_series}, Model: ${product_model})`);
+
+    if (!profile.hasJets && this.hasCapability('onoff.jets')) {
+      this.log('Removing unsupported capability: onoff.jets');
+      await this.removeCapability('onoff.jets');
+    }
+    if (!profile.hasOzone && this.hasCapability('onoff.ozone')) {
+      this.log('Removing unsupported capability: onoff.ozone');
+      await this.removeCapability('onoff.ozone');
+    }
+    if (!profile.hasUvc && this.hasCapability('onoff.uvc')) {
+      this.log('Removing unsupported capability: onoff.uvc');
+      await this.removeCapability('onoff.uvc');
+    }
+    if (!profile.hasBubbles && this.hasCapability('bubble_level')) {
+      this.log('Removing unsupported capability: bubble_level');
+      await this.removeCapability('bubble_level');
+    }
+
     // Construct API client with passwordHash
     try {
       this.apiClient = new MspaApiClient({ email, passwordHash, region });
       this.log('API client constructed');
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to construct API client: ${err.message}`);
       this.setUnavailable('Configuration error. Please re-pair the device.');
       return;
@@ -51,7 +73,7 @@ export default class MspaDevice extends Homey.Device {
       await this.apiClient.authenticate();
       this.log('Authenticated successfully');
       this.consecutiveFailures = 0;
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Authentication failed: ${err.message}`);
       this.setUnavailable('Authentication failed. Check credentials.');
       return;
@@ -64,7 +86,7 @@ export default class MspaDevice extends Homey.Device {
       this.setAvailable();
       this.syncFromShadow(parseShadow(shadow));
       this.log('Initial shadow synced');
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to fetch initial shadow: ${err.message}`);
       this.handleApiError();
     }
@@ -98,35 +120,37 @@ export default class MspaDevice extends Homey.Device {
       if (shadow.water_temperature !== this.previousShadow.water_temperature) {
         this.log(`Firing temperature_changed trigger: ${shadow.water_temperature}`);
         this.triggerCards.temperature_changed.trigger(this, { temperature: shadow.water_temperature })
-          .catch((err) => this.error(`Failed to fire temperature_changed trigger: ${err.message}`));
+          .catch((err: any) => this.error(`Failed to fire temperature_changed trigger: ${err.message}`));
       }
 
       // Fault detected (only fire if it goes from no fault to fault)
       if (shadow.fault && shadow.fault !== '' && shadow.fault !== this.previousShadow.fault) {
         this.log(`Firing fault_detected trigger: ${shadow.fault}`);
         this.triggerCards.fault_detected.trigger(this, { fault_code: shadow.fault })
-          .catch((err) => this.error(`Failed to fire fault_detected trigger: ${err.message}`));
+          .catch((err: any) => this.error(`Failed to fire fault_detected trigger: ${err.message}`));
       }
     }
 
     // Map temperature values
-    this.setCapabilityValue('measure_temperature', shadow.water_temperature);
-    this.setCapabilityValue('target_temperature', shadow.temperature_setting);
+    if (this.hasCapability('measure_temperature')) this.setCapabilityValue('measure_temperature', shadow.water_temperature);
+    if (this.hasCapability('target_temperature')) this.setCapabilityValue('target_temperature', shadow.temperature_setting);
 
     // Map on/off capabilities
-    this.setCapabilityValue('onoff.heater', shadow.heater_state);
-    this.setCapabilityValue('onoff.filter', shadow.filter_state);
-    this.setCapabilityValue('onoff.jets', shadow.jet_state);
-    this.setCapabilityValue('onoff.ozone', shadow.ozone_state);
-    this.setCapabilityValue('onoff.uvc', shadow.uvc_state);
+    if (this.hasCapability('onoff.heater')) this.setCapabilityValue('onoff.heater', shadow.heater_state);
+    if (this.hasCapability('onoff.filter')) this.setCapabilityValue('onoff.filter', shadow.filter_state);
+    if (this.hasCapability('onoff.jets')) this.setCapabilityValue('onoff.jets', shadow.jet_state);
+    if (this.hasCapability('onoff.ozone')) this.setCapabilityValue('onoff.ozone', shadow.ozone_state);
+    if (this.hasCapability('onoff.uvc')) this.setCapabilityValue('onoff.uvc', shadow.uvc_state);
 
     // Map bubble level (number 0-3 to enum string)
-    const bubbleValue = shadow.bubble_level === 0 ? 'off' : String(shadow.bubble_level);
-    this.setCapabilityValue('bubble_level', bubbleValue);
+    if (this.hasCapability('bubble_level')) {
+      const bubbleValue = shadow.bubble_level === 0 ? 'off' : String(shadow.bubble_level);
+      this.setCapabilityValue('bubble_level', bubbleValue);
+    }
 
     // Map active sensors from shadow
-    this.setCapabilityValue('heater_active', shadow.heater_state);
-    this.setCapabilityValue('filter_active', shadow.filter_state);
+    if (this.hasCapability('heater_active')) this.setCapabilityValue('heater_active', shadow.heater_state);
+    if (this.hasCapability('filter_active')) this.setCapabilityValue('filter_active', shadow.filter_state);
 
     // Handle fault state
     if (shadow.fault && shadow.fault !== '') {
@@ -141,7 +165,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle target temperature capability change
    */
-  async handleTargetTemperature(value) {
+  async handleTargetTemperature(value: any) {
     this.log(`target_temperature changed to ${value}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -155,10 +179,10 @@ export default class MspaDevice extends Homey.Device {
     const apiValue = value * 2;
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { temperature_setting: apiValue });
+      await this.apiClient!.sendCommand(deviceId, product_id, { temperature_setting: apiValue });
       this.log('Temperature command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send temperature command: ${err.message}`);
       throw err;
     }
@@ -167,7 +191,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle heater capability change
    */
-  async handleHeater(value) {
+  async handleHeater(value: any) {
     this.log(`heater changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -178,10 +202,10 @@ export default class MspaDevice extends Homey.Device {
     }
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { heater_state: value ? 1 : 0 });
+      await this.apiClient!.sendCommand(deviceId, product_id, { heater_state: value ? 1 : 0 });
       this.log('Heater command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send heater command: ${err.message}`);
       throw err;
     }
@@ -190,7 +214,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle filter capability change with constraint enforcement
    */
-  async handleFilter(value) {
+  async handleFilter(value: any) {
     this.log(`filter changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -206,20 +230,20 @@ export default class MspaDevice extends Homey.Device {
       if (heaterValue) {
         this.log('Filter constraint: turning off heater when filter turns off');
         try {
-          await this.apiClient.sendCommand(deviceId, product_id, { heater_state: 0 });
+          await this.apiClient!.sendCommand(deviceId, product_id, { heater_state: 0 });
           this.setCapabilityValue('onoff.heater', false);
           this.log('Heater turned off via filter constraint');
-        } catch (err) {
+        } catch (err: any) {
           this.log(`Failed to enforce filter constraint on heater: ${err.message}`);
         }
       }
     }
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { filter_state: value ? 1 : 0 });
+      await this.apiClient!.sendCommand(deviceId, product_id, { filter_state: value ? 1 : 0 });
       this.log('Filter command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send filter command: ${err.message}`);
       throw err;
     }
@@ -228,7 +252,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle bubble level capability change
    */
-  async handleBubbleLevel(value) {
+  async handleBubbleLevel(value: any) {
     this.log(`bubble_level changed to ${value}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -242,10 +266,10 @@ export default class MspaDevice extends Homey.Device {
     const apiValue = value === 'off' ? 0 : parseInt(value, 10);
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { bubble_level: apiValue });
+      await this.apiClient!.sendCommand(deviceId, product_id, { bubble_level: apiValue });
       this.log('Bubble level command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send bubble level command: ${err.message}`);
       throw err;
     }
@@ -254,7 +278,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle jets capability change
    */
-  async handleJets(value) {
+  async handleJets(value: any) {
     this.log(`jets changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -265,10 +289,10 @@ export default class MspaDevice extends Homey.Device {
     }
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { jet_state: value ? 1 : 0 });
+      await this.apiClient!.sendCommand(deviceId, product_id, { jet_state: value ? 1 : 0 });
       this.log('Jets command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send jets command: ${err.message}`);
       throw err;
     }
@@ -277,7 +301,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle ozone capability change
    */
-  async handleOzone(value) {
+  async handleOzone(value: any) {
     this.log(`ozone changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -288,10 +312,10 @@ export default class MspaDevice extends Homey.Device {
     }
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { ozone_state: value ? 1 : 0 });
+      await this.apiClient!.sendCommand(deviceId, product_id, { ozone_state: value ? 1 : 0 });
       this.log('Ozone command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send ozone command: ${err.message}`);
       throw err;
     }
@@ -300,7 +324,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Handle UVC capability change
    */
-  async handleUvc(value) {
+  async handleUvc(value: any) {
     this.log(`uvc changed to ${value ? 'ON' : 'OFF'}`);
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
@@ -311,10 +335,10 @@ export default class MspaDevice extends Homey.Device {
     }
 
     try {
-      await this.apiClient.sendCommand(deviceId, product_id, { uvc_state: value ? 1 : 0 });
+      await this.apiClient!.sendCommand(deviceId, product_id, { uvc_state: value ? 1 : 0 });
       this.log('UVC command sent');
       this.startRapidPolling();
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Failed to send UVC command: ${err.message}`);
       throw err;
     }
@@ -397,14 +421,14 @@ export default class MspaDevice extends Homey.Device {
       if (!this.wasAvailable) {
         this.log('Device recovered, firing device_online trigger');
         this.triggerCards.device_online.trigger(this)
-          .catch((err) => this.error(`Failed to fire device_online trigger: ${err.message}`));
+          .catch((err: any) => this.error(`Failed to fire device_online trigger: ${err.message}`));
         this.wasAvailable = true;
       }
       
       this.setAvailable();
       this.syncFromShadow(parseShadow(shadow));
       this.log('Poll successful');
-    } catch (err) {
+    } catch (err: any) {
       this.log(`Poll failed: ${err.message}`);
       this.handleApiError();
     }
@@ -421,7 +445,7 @@ export default class MspaDevice extends Homey.Device {
       if (this.wasAvailable) {
         this.log('Device unreachable, firing device_offline trigger');
         this.triggerCards.device_offline.trigger(this)
-          .catch((err) => this.error(`Failed to fire device_offline trigger: ${err.message}`));
+          .catch((err: any) => this.error(`Failed to fire device_offline trigger: ${err.message}`));
         this.wasAvailable = false;
       }
       this.setUnavailable('Could not reach your spa. If it was just powered on, the WiFi module may still be connecting.');
