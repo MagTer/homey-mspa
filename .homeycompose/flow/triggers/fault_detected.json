@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "A fault was detected",
+    "no": "En feil ble oppdaget"
+  },
+  "titleFormatted": {
+    "en": "A fault was detected: [[fault_code]]",
+    "no": "En feil ble oppdaget: [[fault_code]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "fault_code",
+      "title": {
+        "en": "Fault Code",
+        "no": "Feilkode"
+      },
+      "type": "string",
+      "example": "E1"
+    }
+  ]
+}

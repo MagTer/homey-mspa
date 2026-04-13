@@ -1,0 +1,40 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Bubble Level",
+    "no": "Boblenivå"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off",
+        "no": "Av"
+      }
+    },
+    {
+      "id": "1",
+      "title": {
+        "en": "Level 1",
+        "no": "Nivå 1"
+      }
+    },
+    {
+      "id": "2",
+      "title": {
+        "en": "Level 2",
+        "no": "Nivå 2"
+      }
+    },
+    {
+      "id": "3",
+      "title": {
+        "en": "Level 3",
+        "no": "Nivå 3"
+      }
+    }
+  ]
+}

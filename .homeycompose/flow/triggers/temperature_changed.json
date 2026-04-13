@@ -1,0 +1,28 @@
+{
+  "title": {
+    "en": "The temperature changed",
+    "no": "Temperaturen ble endret"
+  },
+  "titleFormatted": {
+    "en": "The temperature changed to [[temperature]]",
+    "no": "Temperaturen ble endret til [[temperature]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "temperature",
+      "title": {
+        "en": "Temperature",
+        "no": "Temperatur"
+      },
+      "type": "number",
+      "example": 38
+    }
+  ]
+}

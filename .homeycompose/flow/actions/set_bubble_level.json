@@ -1,0 +1,51 @@
+{
+  "title": {
+    "en": "Set bubble level",
+    "no": "Sett boblenivå"
+  },
+  "titleFormatted": {
+    "en": "Set bubble level to [[level]]",
+    "no": "Sett boblenivå til [[level]]"
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    },
+    {
+      "name": "level",
+      "type": "dropdown",
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "off",
+            "no": "av"
+          }
+        },
+        {
+          "id": "1",
+          "title": {
+            "en": "1",
+            "no": "1"
+          }
+        },
+        {
+          "id": "2",
+          "title": {
+            "en": "2",
+            "no": "2"
+          }
+        },
+        {
+          "id": "3",
+          "title": {
+            "en": "3",
+            "no": "3"
+          }
+        }
+      ]
+    }
+  ]
+}

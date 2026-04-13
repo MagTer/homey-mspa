@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      background-color: #0084ff;
+      color: white;
+      text-align: center;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: sans-serif;
+      font-weight: bold;
+    }
+    .button:active {
+      background-color: #005fcc;
+    }
+  </style>
+</head>
+<body>
+  <p>Select your M-Spa region:</p>
+  <div class="button" onclick="onSelect('row')">Rest of World (ROW)</div>
+  <div class="button" onclick="onSelect('us')">United States (US)</div>
+  <div class="button" onclick="onSelect('ch')">China (CH)</div>
+
+  <script>
+    function onSelect(regionId) {
+      Homey.emit('select_region', regionId);
+      Homey.nextView();
+    }
+  </script>
+</body>
+</html>
