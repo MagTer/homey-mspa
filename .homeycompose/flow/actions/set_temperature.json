@@ -17,7 +17,7 @@
       "name": "temperature",
       "type": "number",
       "min": 20,
-      "max": 40,
+      "max": 42,
       "step": 0.5
     }
   ]

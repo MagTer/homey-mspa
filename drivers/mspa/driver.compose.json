@@ -30,7 +30,10 @@
       "title": {
         "en": "Target Temperature",
         "no": "Måltemperatur"
-      }
+      },
+      "min": 20,
+      "max": 42,
+      "step": 0.5
     },
     "onoff.heater": {
       "title": {
