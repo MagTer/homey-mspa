@@ -88,6 +88,16 @@
     "large": "drivers/mspa/assets/images/large.png",
     "small": "drivers/mspa/assets/images/small.png"
   },
+  "mobile": {
+    "components": [
+      {
+        "id": "sensor",
+        "capabilities": [
+          "measure_temperature"
+        ]
+      }
+    ]
+  },
   "pair": [
     {
       "id": "list_devices",
