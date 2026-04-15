@@ -30,43 +30,53 @@
       "title": {
         "en": "Target Temperature",
         "no": "Måltemperatur"
-      }
+      },
+      "min": 20,
+      "max": 42,
+      "step": 0.5,
+      "uiQuickAction": null
     },
     "onoff.heater": {
       "title": {
         "en": "Heater",
         "no": "Varmer"
-      }
+      },
+      "uiQuickAction": null
     },
     "onoff.filter": {
       "title": {
         "en": "Filter",
         "no": "Filter"
-      }
+      },
+      "uiQuickAction": null
     },
     "onoff.jets": {
       "title": {
         "en": "Jets",
         "no": "Dyser"
-      }
+      },
+      "uiQuickAction": null
     },
     "onoff.ozone": {
       "title": {
         "en": "Ozone",
         "no": "Ozon"
-      }
+      },
+      "uiQuickAction": null
     },
     "onoff.uvc": {
       "title": {
         "en": "UVC",
         "no": "UVC"
-      }
+      },
+      "uiQuickAction": null
     },
     "bubble_level": {
       "title": {
         "en": "Bubble Level",
         "no": "Boblenivå"
-      }
+      },
+      "uiQuickAction": null
     },
     "heater_active": {
       "title": {
@@ -84,6 +94,16 @@
   "images": {
     "large": "drivers/mspa/assets/images/large.png",
     "small": "drivers/mspa/assets/images/small.png"
+  },
+  "mobile": {
+    "components": [
+      {
+        "id": "sensor",
+        "capabilities": [
+          "measure_temperature"
+        ]
+      }
+    ]
   },
   "pair": [
     {
