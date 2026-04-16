@@ -10,23 +10,48 @@ Control and monitor your M-Spa hot tub directly from Homey.
 - **Flow Support**: Build automations with spa triggers (e.g., "Temperature changed", "Fault detected") and actions.
 - **Status Visibility**: Get clear fault descriptions and connection status.
 
-## Pairing Instructions
+## Setup Instructions
 
-1. **Select Region**: Choose between ROW (Rest of World), US, or CH (China) based on where your account is registered.
-2. **Login**: Enter your M-Spa mobile app email and password.
-3. **Select Device**: Choose your hot tub from the list of available devices.
+### 1. Configure your Account
+Before adding your spa, you must configure your M-Spa account in the app settings:
+1.  Go to **More > Settings > Apps > M-Spa Hot Tub** in the Homey app.
+2.  Click **Configure App**.
+3.  Enter your **Email**, **Password**, and select your **Region**.
+4.  Click **Verify and Save**. The app will test your credentials against the M-Spa API.
 
-**Note**: If your hot tub was recently powered on, it may take a few minutes for the WiFi module to connect to the cloud. If pairing fails or the device shows as unavailable, please wait 2-3 minutes and try again.
+### 2. Add your Device
+Once your account is configured:
+1.  Go to **Devices > Add Device (+)**.
+2.  Search for **M-Spa** and click **Connect**.
+3.  Choose your hot tub from the list of detected devices.
+
+**Note**: If your hot tub was recently powered on, it may take a few minutes for the WiFi module to connect to the cloud. If the device list is empty, please wait 2-3 minutes and try again.
 
 ## Supported Models
 
-This app supports most modern M-Spa models using the M-Spa mobile app. The app automatically detects your model's capabilities (e.g., whether it has Jets or Ozone support) and only shows the relevant controls in Homey.
+The app automatically detects your model's capabilities (e.g., Delight, Premium, Elite, Muse, Frame, Urban) and only shows the relevant controls in Homey. 
+
+- **Basic Models**: Heater, Filter, Bubbles.
+- **Advanced Models**: Adds Jets, Ozone, and UVC where supported.
 
 ## Troubleshooting
 
+- **"Please configure your account"**: This means you haven't completed Step 1 (Setup Instructions) yet.
 - **Device Unavailable**: Check if the hot tub is powered on and connected to your WiFi.
-- **Wrong Password**: If you get an authentication error, please double-check your credentials in the official M-Spa app.
-- **API Limits**: The app uses conservative polling to respect M-Spa's cloud limits. Status updates may take up to 15 minutes during idle periods, but will update every 5 seconds for 30 seconds after you send a command.
+- **API Polling**: To respect M-Spa's cloud limits, status updates occur every 15 minutes during idle periods, but increase to every 5 seconds for 30 seconds after you send a command.
+
+## Developer Information
+
+This app is built using **Homey SDK v3** and **TypeScript**.
+
+### Building
+The project uses the Homey Compose pattern. To build and run:
+```bash
+npx homey app run
+```
+
+### API Client
+The API communication is centralized in `app.ts` to ensure global rate limiting (400ms throttle) and single authentication state.
 
 ## Disclaimer
 
