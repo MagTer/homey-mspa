@@ -34,17 +34,17 @@ export default class MspaDevice extends Homey.Device {
     const profile = getProfile(product_series, product_model);
     this.log(`Applying profile: ${profile.name} (Series: ${product_series}, Model: ${product_model})`);
 
-    if (!profile.hasJets && this.hasCapability('onoff.jets')) {
-      this.log('Removing unsupported capability: onoff.jets');
-      await this.removeCapability('onoff.jets');
+    if (!profile.hasJets && this.hasCapability('mspa_jets')) {
+      this.log('Removing unsupported capability: mspa_jets');
+      await this.removeCapability('mspa_jets');
     }
-    if (!profile.hasOzone && this.hasCapability('onoff.ozone')) {
-      this.log('Removing unsupported capability: onoff.ozone');
-      await this.removeCapability('onoff.ozone');
+    if (!profile.hasOzone && this.hasCapability('mspa_ozone')) {
+      this.log('Removing unsupported capability: mspa_ozone');
+      await this.removeCapability('mspa_ozone');
     }
-    if (!profile.hasUvc && this.hasCapability('onoff.uvc')) {
-      this.log('Removing unsupported capability: onoff.uvc');
-      await this.removeCapability('onoff.uvc');
+    if (!profile.hasUvc && this.hasCapability('mspa_uvc')) {
+      this.log('Removing unsupported capability: mspa_uvc');
+      await this.removeCapability('mspa_uvc');
     }
     if (!profile.hasBubbles && this.hasCapability('bubble_level')) {
       this.log('Removing unsupported capability: bubble_level');
@@ -56,12 +56,12 @@ export default class MspaDevice extends Homey.Device {
 
     // Register capability listeners for all controllable capabilities
     this.registerCapabilityListener('target_temperature', this.handleTargetTemperature.bind(this));
-    this.registerCapabilityListener('onoff.heater', this.handleHeater.bind(this));
-    this.registerCapabilityListener('onoff.filter', this.handleFilter.bind(this));
+    this.registerCapabilityListener('mspa_heater', this.handleHeater.bind(this));
+    this.registerCapabilityListener('mspa_filter', this.handleFilter.bind(this));
     this.registerCapabilityListener('bubble_level', this.handleBubbleLevel.bind(this));
-    this.registerCapabilityListener('onoff.jets', this.handleJets.bind(this));
-    this.registerCapabilityListener('onoff.ozone', this.handleOzone.bind(this));
-    this.registerCapabilityListener('onoff.uvc', this.handleUvc.bind(this));
+    this.registerCapabilityListener('mspa_jets', this.handleJets.bind(this));
+    this.registerCapabilityListener('mspa_ozone', this.handleOzone.bind(this));
+    this.registerCapabilityListener('mspa_uvc', this.handleUvc.bind(this));
 
     this.log('Capability listeners registered');
 
@@ -81,7 +81,7 @@ export default class MspaDevice extends Homey.Device {
   /**
    * Sync parsed shadow state to Homey capabilities
    */
-  syncFromShadow(shadow: ParsedShadow) {
+  async syncFromShadow(shadow: ParsedShadow) {
     this.log(`Syncing shadow: ${JSON.stringify(shadow)}`);
 
     // Detect changes and fire triggers (if not the first sync)
@@ -101,33 +101,44 @@ export default class MspaDevice extends Homey.Device {
       }
     }
 
-    // Map temperature values
-    if (this.hasCapability('measure_temperature')) this.setCapabilityValue('measure_temperature', shadow.water_temperature);
-    if (this.hasCapability('target_temperature')) this.setCapabilityValue('target_temperature', shadow.temperature_setting);
+    const writes: Promise<void>[] = [];
+    const write = (cap: string, value: unknown) => {
+      if (this.hasCapability(cap)) {
+        writes.push(
+          this.setCapabilityValue(cap, value)
+            .catch((err: any) => this.error(`Failed to set ${cap}: ${err.message}`))
+        );
+      }
+    };
 
-    // Map on/off capabilities
-    if (this.hasCapability('onoff.heater')) this.setCapabilityValue('onoff.heater', shadow.heater_state);
-    if (this.hasCapability('onoff.filter')) this.setCapabilityValue('onoff.filter', shadow.filter_state);
-    if (this.hasCapability('onoff.jets')) this.setCapabilityValue('onoff.jets', shadow.jet_state);
-    if (this.hasCapability('onoff.ozone')) this.setCapabilityValue('onoff.ozone', shadow.ozone_state);
-    if (this.hasCapability('onoff.uvc')) this.setCapabilityValue('onoff.uvc', shadow.uvc_state);
+    write('measure_temperature', shadow.water_temperature);
+    write('target_temperature', shadow.temperature_setting);
+    write('mspa_heater', shadow.heater_state);
+    write('mspa_filter', shadow.filter_state);
+    write('mspa_jets', shadow.jet_state);
+    write('mspa_ozone', shadow.ozone_state);
+    write('mspa_uvc', shadow.uvc_state);
+    write('heater_active', shadow.heater_state);
+    write('filter_active', shadow.filter_state);
 
-    // Map bubble level (number 0-3 to enum string)
     if (this.hasCapability('bubble_level')) {
       const bubbleValue = shadow.bubble_level === 0 ? 'off' : String(shadow.bubble_level);
-      this.setCapabilityValue('bubble_level', bubbleValue);
+      write('bubble_level', bubbleValue);
     }
 
-    // Map active sensors from shadow
-    if (this.hasCapability('heater_active')) this.setCapabilityValue('heater_active', shadow.heater_state);
-    if (this.hasCapability('filter_active')) this.setCapabilityValue('filter_active', shadow.filter_state);
+    await Promise.all(writes);
 
-    // Handle fault state
+    // Surface fault as a warning; do not mark the device unavailable so the
+    // user can still issue commands (e.g., turn off the heater) to recover.
     if (shadow.fault && shadow.fault !== '') {
-      this.setUnavailable(`Spa reported fault: ${shadow.fault}`);
-      this.log(`Spa fault detected: ${shadow.fault}`);
-    } else if (this.wasAvailable) {
-      this.setAvailable();
+      this.log(`Spa fault reported: ${shadow.fault}`);
+      if (typeof (this as any).setWarning === 'function') {
+        (this as any).setWarning(`Spa reported fault: ${shadow.fault}`)
+          .catch((err: any) => this.error(`Failed to set warning: ${err.message}`));
+      }
+    } else if (typeof (this as any).unsetWarning === 'function') {
+      (this as any).unsetWarning()
+        .catch((err: any) => this.error(`Failed to clear warning: ${err.message}`));
     }
 
     // Update previous shadow for next sync
@@ -196,18 +207,17 @@ export default class MspaDevice extends Homey.Device {
       throw new Error('Please configure your M-Spa account in app settings');
     }
 
-    // D003: Filter constraint - if filter is turned off, turn off heater
+    // D003: Filter constraint - if filter is turned off, turn off heater first.
+    // If that command fails, abort before sending filter-off so the spa does
+    // not end up in an invalid heater=on/filter=off state.
     if (!value) {
-      const heaterValue = this.getCapabilityValue('onoff.heater');
+      const heaterValue = this.getCapabilityValue('mspa_heater');
       if (heaterValue) {
-        this.log('Filter constraint: turning off heater when filter turns off');
-        try {
-          await apiClient.sendCommand(deviceId, product_id, { heater_state: 0 });
-          this.setCapabilityValue('onoff.heater', false);
-          this.log('Heater turned off via filter constraint');
-        } catch (err: any) {
-          this.log(`Failed to enforce filter constraint on heater: ${err.message}`);
-        }
+        this.log('Filter constraint: turning off heater before filter');
+        await apiClient.sendCommand(deviceId, product_id, { heater_state: 0 });
+        await this.setCapabilityValue('mspa_heater', false)
+          .catch((err: any) => this.error(`Failed to mirror heater off: ${err.message}`));
+        this.log('Heater turned off via filter constraint');
       }
     }
 
@@ -397,9 +407,10 @@ export default class MspaDevice extends Homey.Device {
         this.triggerCards.device_online.trigger(this)
           .catch((err: any) => this.error(`Failed to fire device_online trigger: ${err.message}`));
         this.wasAvailable = true;
+        await this.setAvailable();
       }
-      
-      this.syncFromShadow(parseShadow(shadow));
+
+      await this.syncFromShadow(parseShadow(shadow));
       this.log('Poll successful');
     } catch (err: any) {
       this.log(`Poll failed: ${err.message}`);

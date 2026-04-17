@@ -75,11 +75,11 @@ vi.mock('homey', () => {
       this._capabilities = {
         'measure_temperature': 0,
         'target_temperature': 0,
-        'onoff.heater': false,
-        'onoff.filter': false,
-        'onoff.jets': false,
-        'onoff.ozone': false,
-        'onoff.uvc': false,
+        'mspa_heater': false,
+        'mspa_filter': false,
+        'mspa_jets': false,
+        'mspa_ozone': false,
+        'mspa_uvc': false,
         'bubble_level': 'off',
         'heater_active': false,
         'filter_active': false,
@@ -228,11 +228,11 @@ describe('MspaDevice', () => {
       // Verify capabilities were synced
       expect(device.getCapabilityValue('measure_temperature')).toBe(38);
       expect(device.getCapabilityValue('target_temperature')).toBe(40);
-      expect(device.getCapabilityValue('onoff.heater')).toBe(true);
-      expect(device.getCapabilityValue('onoff.filter')).toBe(false);
-      expect(device.getCapabilityValue('onoff.jets')).toBe(false);
-      expect(device.getCapabilityValue('onoff.ozone')).toBe(true);
-      expect(device.getCapabilityValue('onoff.uvc')).toBe(false);
+      expect(device.getCapabilityValue('mspa_heater')).toBe(true);
+      expect(device.getCapabilityValue('mspa_filter')).toBe(false);
+      expect(device.getCapabilityValue('mspa_jets')).toBe(false);
+      expect(device.getCapabilityValue('mspa_ozone')).toBe(true);
+      expect(device.getCapabilityValue('mspa_uvc')).toBe(false);
       expect(device.getCapabilityValue('bubble_level')).toBe('2');
       expect(device.getCapabilityValue('heater_active')).toBe(true);
       expect(device.getCapabilityValue('filter_active')).toBe(false);
@@ -355,11 +355,11 @@ describe('MspaDevice', () => {
       // Assert: Verify all capabilities are set correctly
       expect(device.getCapabilityValue('measure_temperature')).toBe(38.5);
       expect(device.getCapabilityValue('target_temperature')).toBe(40);
-      expect(device.getCapabilityValue('onoff.heater')).toBe(true);
-      expect(device.getCapabilityValue('onoff.filter')).toBe(false);
-      expect(device.getCapabilityValue('onoff.jets')).toBe(true);
-      expect(device.getCapabilityValue('onoff.ozone')).toBe(false);
-      expect(device.getCapabilityValue('onoff.uvc')).toBe(true);
+      expect(device.getCapabilityValue('mspa_heater')).toBe(true);
+      expect(device.getCapabilityValue('mspa_filter')).toBe(false);
+      expect(device.getCapabilityValue('mspa_jets')).toBe(true);
+      expect(device.getCapabilityValue('mspa_ozone')).toBe(false);
+      expect(device.getCapabilityValue('mspa_uvc')).toBe(true);
       expect(device.getCapabilityValue('bubble_level')).toBe('3'); // 3 → '3'
       expect(device.getCapabilityValue('heater_active')).toBe(true);
       expect(device.getCapabilityValue('filter_active')).toBe(false);
@@ -388,8 +388,9 @@ describe('MspaDevice', () => {
       expect(device.getCapabilityValue('bubble_level')).toBe('off');
     });
 
-    it('should handle fault string by marking device unavailable', async () => {
-      // Setup
+    it('should surface faults without marking the device unavailable', async () => {
+      // A reported fault should not block command control; the user needs to
+      // stay able to issue commands (e.g., turn off the heater) to recover.
       mockParseShadow.mockReturnValue({
         water_temperature: 38,
         temperature_setting: 40,
@@ -404,12 +405,10 @@ describe('MspaDevice', () => {
       });
       mockGetThingShadow.mockResolvedValue({});
 
-      // Act
       await device.onInit();
 
-      // Assert
-      expect(device.isAvailable()).toBe(false);
-      expect(device._lastUnavailableMessage).toContain('E1');
+      expect(device.isAvailable()).toBe(true);
+      expect(device._logs.some((l: string) => l.includes('E1'))).toBe(true);
     });
   });
 
@@ -471,10 +470,10 @@ describe('MspaDevice', () => {
       await device.onInit();
       
       // Set heater to on
-      device.setCapabilityValue('onoff.heater', true);
+      device.setCapabilityValue('mspa_heater', true);
 
       // Act: Turn off filter
-      const listener = (device as any)._capabilityListeners['onoff.filter'];
+      const listener = (device as any)._capabilityListeners['mspa_filter'];
       await listener(false);
 
       // Assert: Both heater and filter commands should be sent
@@ -490,7 +489,7 @@ describe('MspaDevice', () => {
       );
 
       // Assert: Heater capability should be set to false
-      expect(device.getCapabilityValue('onoff.heater')).toBe(false);
+      expect(device.getCapabilityValue('mspa_heater')).toBe(false);
     });
 
     it('should not turn off heater when filter is turned off and heater is already off', async () => {
@@ -498,10 +497,10 @@ describe('MspaDevice', () => {
       await device.onInit();
       
       // Set heater to off
-      device.setCapabilityValue('onoff.heater', false);
+      device.setCapabilityValue('mspa_heater', false);
 
       // Act: Turn off filter
-      const listener = (device as any)._capabilityListeners['onoff.filter'];
+      const listener = (device as any)._capabilityListeners['mspa_filter'];
       await listener(false);
 
       // Assert: Only filter command should be sent, not heater
@@ -523,7 +522,7 @@ describe('MspaDevice', () => {
       await device.onInit();
 
       // Act: Turn on filter
-      const listener = (device as any)._capabilityListeners['onoff.filter'];
+      const listener = (device as any)._capabilityListeners['mspa_filter'];
       await listener(true);
 
       // Assert: Only filter command should be sent
@@ -578,7 +577,7 @@ describe('MspaDevice', () => {
       mockHomeyDevice.setInterval.mockClear();
 
       // Act: Send a command via capability listener
-      const listener = (device as any)._capabilityListeners['onoff.heater'];
+      const listener = (device as any)._capabilityListeners['mspa_heater'];
       await listener(true);
 
       // Assert: startRapidPolling should be called
@@ -621,7 +620,7 @@ describe('MspaDevice', () => {
       mockHomeyDevice.setInterval.mockClear();
 
       // Act: Trigger rapid polling
-      const listener = (device as any)._capabilityListeners['onoff.heater'];
+      const listener = (device as any)._capabilityListeners['mspa_heater'];
       await listener(true);
       
       expect((device as any).isRapidPolling).toBe(true);
@@ -675,7 +674,7 @@ describe('MspaDevice', () => {
       await device.onInit();
 
       // Test jets
-      const jetsListener = (device as any)._capabilityListeners['onoff.jets'];
+      const jetsListener = (device as any)._capabilityListeners['mspa_jets'];
       await jetsListener(true);
       expect(mockSendCommand).toHaveBeenCalledWith(
         'test-device-id',
@@ -685,7 +684,7 @@ describe('MspaDevice', () => {
 
       // Test ozone
       mockSendCommand.mockClear();
-      const ozoneListener = (device as any)._capabilityListeners['onoff.ozone'];
+      const ozoneListener = (device as any)._capabilityListeners['mspa_ozone'];
       await ozoneListener(false);
       expect(mockSendCommand).toHaveBeenCalledWith(
         'test-device-id',
@@ -695,7 +694,7 @@ describe('MspaDevice', () => {
 
       // Test uvc
       mockSendCommand.mockClear();
-      const uvcListener = (device as any)._capabilityListeners['onoff.uvc'];
+      const uvcListener = (device as any)._capabilityListeners['mspa_uvc'];
       await uvcListener(true);
       expect(mockSendCommand).toHaveBeenCalledWith(
         'test-device-id',
@@ -1002,21 +1001,21 @@ describe('MspaDevice', () => {
       };
       
       // Initially has all capabilities
-      (device as any)._capabilities['onoff.jets'] = false;
-      (device as any)._capabilities['onoff.ozone'] = false;
-      (device as any)._capabilities['onoff.uvc'] = false;
+      (device as any)._capabilities['mspa_jets'] = false;
+      (device as any)._capabilities['mspa_ozone'] = false;
+      (device as any)._capabilities['mspa_uvc'] = false;
       (device as any)._capabilities['bubble_level'] = 'off';
-      (device as any)._capabilities['onoff.heater'] = false;
+      (device as any)._capabilities['mspa_heater'] = false;
 
       // Act
       await device.onInit();
 
       // Assert
-      expect(device.getCapabilityValue('onoff.jets')).toBeUndefined();
-      expect(device.getCapabilityValue('onoff.ozone')).toBeUndefined();
-      expect(device.getCapabilityValue('onoff.uvc')).toBeUndefined();
+      expect(device.getCapabilityValue('mspa_jets')).toBeUndefined();
+      expect(device.getCapabilityValue('mspa_ozone')).toBeUndefined();
+      expect(device.getCapabilityValue('mspa_uvc')).toBeUndefined();
       expect(device.hasCapability('bubble_level')).toBe(true); // Delight has bubbles
-      expect(device.hasCapability('onoff.heater')).toBe(true);
+      expect(device.hasCapability('mspa_heater')).toBe(true);
     });
 
     it('should keep all capabilities for a Frame model', async () => {
@@ -1027,18 +1026,18 @@ describe('MspaDevice', () => {
         product_model: 'F-01',
       };
       
-      (device as any)._capabilities['onoff.jets'] = false;
-      (device as any)._capabilities['onoff.ozone'] = false;
-      (device as any)._capabilities['onoff.uvc'] = false;
+      (device as any)._capabilities['mspa_jets'] = false;
+      (device as any)._capabilities['mspa_ozone'] = false;
+      (device as any)._capabilities['mspa_uvc'] = false;
       (device as any)._capabilities['bubble_level'] = 'off';
 
       // Act
       await device.onInit();
 
       // Assert
-      expect(device.hasCapability('onoff.jets')).toBe(true);
-      expect(device.hasCapability('onoff.ozone')).toBe(true);
-      expect(device.hasCapability('onoff.uvc')).toBe(true);
+      expect(device.hasCapability('mspa_jets')).toBe(true);
+      expect(device.hasCapability('mspa_ozone')).toBe(true);
+      expect(device.hasCapability('mspa_uvc')).toBe(true);
       expect(device.hasCapability('bubble_level')).toBe(true);
     });
 
@@ -1049,17 +1048,17 @@ describe('MspaDevice', () => {
         product_series: 'Unknown-123',
       };
       
-      (device as any)._capabilities['onoff.jets'] = false;
-      (device as any)._capabilities['onoff.ozone'] = false;
-      (device as any)._capabilities['onoff.uvc'] = false;
+      (device as any)._capabilities['mspa_jets'] = false;
+      (device as any)._capabilities['mspa_ozone'] = false;
+      (device as any)._capabilities['mspa_uvc'] = false;
 
       // Act
       await device.onInit();
 
       // Assert: Default profile (no jets/ozone/uvc)
-      expect(device.hasCapability('onoff.jets')).toBe(false);
-      expect(device.hasCapability('onoff.ozone')).toBe(false);
-      expect(device.hasCapability('onoff.uvc')).toBe(false);
+      expect(device.hasCapability('mspa_jets')).toBe(false);
+      expect(device.hasCapability('mspa_ozone')).toBe(false);
+      expect(device.hasCapability('mspa_uvc')).toBe(false);
     });
   });
 });
