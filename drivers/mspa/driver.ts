@@ -37,12 +37,12 @@ export default class MspaDriver extends Homey.Driver {
 
     this.homey.flow.getActionCard('toggle_heater')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('onoff.heater', args.state === 'on');
+        return args.device.triggerCapabilityListener('mspa_heater', args.state === 'on');
       });
 
     this.homey.flow.getActionCard('toggle_filter')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('onoff.filter', args.state === 'on');
+        return args.device.triggerCapabilityListener('mspa_filter', args.state === 'on');
       });
 
     this.homey.flow.getActionCard('set_bubble_level')
@@ -52,17 +52,17 @@ export default class MspaDriver extends Homey.Driver {
 
     this.homey.flow.getActionCard('toggle_jets')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('onoff.jets', args.state === 'on');
+        return args.device.triggerCapabilityListener('mspa_jets', args.state === 'on');
       });
 
     this.homey.flow.getActionCard('toggle_ozone')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('onoff.ozone', args.state === 'on');
+        return args.device.triggerCapabilityListener('mspa_ozone', args.state === 'on');
       });
 
     this.homey.flow.getActionCard('toggle_uvc')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('onoff.uvc', args.state === 'on');
+        return args.device.triggerCapabilityListener('mspa_uvc', args.state === 'on');
       });
   }
 
@@ -70,11 +70,13 @@ export default class MspaDriver extends Homey.Driver {
     this.log('M-Spa driver pairing started');
 
     const app = this.homey.app as MspaApp;
-    const client = app.getApiClient();
 
     session.setHandler('list_devices', async () => {
       this.log('Fetching spa device list');
 
+      // Resolve the API client on every request so that settings changes made
+      // while the pairing wizard is open (a common retry path) take effect.
+      const client = app.getApiClient();
       if (!client) {
         throw new Error('Please configure your M-Spa account (Email, Password, Region) in the app settings first.');
       }

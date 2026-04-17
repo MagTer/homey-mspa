@@ -1,0 +1,11 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Ozone",
+    "no": "Ozon"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "toggle",
+  "uiQuickAction": false
+}

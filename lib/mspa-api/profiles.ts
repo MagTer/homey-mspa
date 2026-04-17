@@ -15,8 +15,8 @@ export interface MspaProfile {
  * Standard capabilities always present in all models:
  * - measure_temperature
  * - target_temperature
- * - onoff.heater
- * - onoff.filter
+ * - mspa_heater
+ * - mspa_filter
  * - heater_active (sensor)
  * - filter_active (sensor)
  */
@@ -88,17 +88,10 @@ export function getProfile(productSeries: string = '', productModel: string = ''
   const seriesUpper = productSeries.toUpperCase();
   const modelUpper = productModel.toUpperCase();
 
-  // Try to find a match in the series name
   for (const [key, profile] of Object.entries(PROFILES)) {
     if (seriesUpper.includes(key) || modelUpper.includes(key)) {
       return profile;
     }
-  }
-
-  // Fallback to series-based prefixes if known
-  if (seriesUpper.startsWith('MS-')) {
-    // Basic MS series often map to Delight or Premium
-    return DEFAULT_PROFILE;
   }
 
   return DEFAULT_PROFILE;

@@ -1,0 +1,11 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "UVC",
+    "no": "UVC"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "toggle",
+  "uiQuickAction": false
+}

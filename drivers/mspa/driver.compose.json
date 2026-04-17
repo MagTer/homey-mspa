@@ -2,7 +2,7 @@
   "name": {
     "en": "M-Spa Device"
   },
-  "class": "thermostat",
+  "class": "sensor",
   "platforms": [
     "local",
     "cloud"
@@ -10,11 +10,11 @@
   "capabilities": [
     "measure_temperature",
     "target_temperature",
-    "onoff.heater",
-    "onoff.filter",
-    "onoff.jets",
-    "onoff.ozone",
-    "onoff.uvc",
+    "mspa_heater",
+    "mspa_filter",
+    "mspa_jets",
+    "mspa_ozone",
+    "mspa_uvc",
     "bubble_level",
     "heater_active",
     "filter_active"
@@ -33,77 +33,12 @@
       },
       "min": 20,
       "max": 42,
-      "step": 0.5,
-      "uiQuickAction": null
-    },
-    "onoff.heater": {
-      "title": {
-        "en": "Heater",
-        "no": "Varmer"
-      },
-      "uiQuickAction": null
-    },
-    "onoff.filter": {
-      "title": {
-        "en": "Filter",
-        "no": "Filter"
-      },
-      "uiQuickAction": null
-    },
-    "onoff.jets": {
-      "title": {
-        "en": "Jets",
-        "no": "Dyser"
-      },
-      "uiQuickAction": null
-    },
-    "onoff.ozone": {
-      "title": {
-        "en": "Ozone",
-        "no": "Ozon"
-      },
-      "uiQuickAction": null
-    },
-    "onoff.uvc": {
-      "title": {
-        "en": "UVC",
-        "no": "UVC"
-      },
-      "uiQuickAction": null
-    },
-    "bubble_level": {
-      "title": {
-        "en": "Bubble Level",
-        "no": "Boblenivå"
-      },
-      "uiQuickAction": null
-    },
-    "heater_active": {
-      "title": {
-        "en": "Heating",
-        "no": "Varmer opp"
-      }
-    },
-    "filter_active": {
-      "title": {
-        "en": "Filtering",
-        "no": "Filtrerer"
-      }
+      "step": 0.5
     }
   },
   "images": {
     "large": "drivers/mspa/assets/images/large.png",
     "small": "drivers/mspa/assets/images/small.png"
-  },
-  "mobile": {
-    "components": [
-      {
-        "id": "sensor",
-        "capabilities": [
-          "measure_temperature"
-        ]
-      }
-    ]
   },
   "pair": [
     {

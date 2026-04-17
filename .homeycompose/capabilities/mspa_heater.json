@@ -1,0 +1,11 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Heater",
+    "no": "Varmer"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "toggle",
+  "uiQuickAction": false
+}
