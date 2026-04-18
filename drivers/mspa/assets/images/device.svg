@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4aa6ff"/>
+      <stop offset="1" stop-color="#1e6ed6"/>
+    </linearGradient>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2a2a"/>
+      <stop offset="1" stop-color="#111"/>
+    </linearGradient>
+    <radialGradient id="floor" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#e8e8e8"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- White background -->
+  <rect width="1000" height="1000" fill="#ffffff"/>
+
+  <!-- Floor shadow ellipse -->
+  <ellipse cx="500" cy="860" rx="380" ry="36" fill="url(#floor)"/>
+  <ellipse cx="500" cy="860" rx="340" ry="24" fill="#000" opacity="0.18"/>
+
+  <!-- Front shell body -->
+  <path d="M140 540
+           C140 460 300 420 500 420
+           C700 420 860 460 860 540
+           L860 740
+           C860 820 700 860 500 860
+           C300 860 140 820 140 740 Z"
+        fill="url(#shell)"/>
+
+  <!-- Quilted horizontal panels -->
+  <g stroke="#333" stroke-width="4" fill="none" opacity="0.6">
+    <path d="M150 600 C250 580 750 580 850 600"/>
+    <path d="M150 660 C250 640 750 640 850 660"/>
+    <path d="M150 720 C250 700 750 700 850 720"/>
+    <path d="M150 780 C250 760 750 760 850 780"/>
+  </g>
+
+  <!-- Rim -->
+  <ellipse cx="500" cy="430" rx="360" ry="70" fill="#1a1a1a"/>
+  <ellipse cx="500" cy="420" rx="356" ry="66" fill="#2e2e2e"/>
+
+  <!-- Water surface -->
+  <ellipse cx="500" cy="418" rx="320" ry="54" fill="url(#water)"/>
+
+  <!-- Water highlights -->
+  <ellipse cx="420" cy="410" rx="90" ry="10" fill="#8cc5ff" opacity="0.7"/>
+  <ellipse cx="620" cy="428" rx="60" ry="6" fill="#8cc5ff" opacity="0.5"/>
+
+  <!-- Bubbles -->
+  <g fill="#ffffff" opacity="0.85">
+    <circle cx="400" cy="412" r="6"/>
+    <circle cx="440" cy="424" r="4"/>
+    <circle cx="475" cy="408" r="5"/>
+    <circle cx="525" cy="422" r="7"/>
+    <circle cx="570" cy="410" r="5"/>
+    <circle cx="605" cy="426" r="4"/>
+    <circle cx="640" cy="414" r="6"/>
+  </g>
+
+  <!-- Control box -->
+  <rect x="780" y="540" width="70" height="110" rx="6" fill="#1a1a1a" stroke="#444" stroke-width="2"/>
+  <rect x="790" y="552" width="50" height="22" rx="2" fill="#1e90ff"/>
+  <circle cx="800" cy="598" r="5" fill="#2ecc71"/>
+  <circle cx="820" cy="598" r="5" fill="#e74c3c"/>
+  <rect x="792" y="618" width="46" height="6" rx="2" fill="#444"/>
+  <rect x="792" y="630" width="46" height="6" rx="2" fill="#444"/>
+
+  <!-- Steam -->
+  <g stroke="#b0b0b0" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.55">
+    <path d="M400 340 C390 310 420 300 410 270"/>
+    <path d="M480 320 C470 290 500 280 490 250"/>
+    <path d="M560 330 C550 300 580 290 570 260"/>
+  </g>
+</svg>

@@ -1,0 +1,3 @@
+Relax into your hot tub without leaving the couch. This app connects your M-Spa to Homey so water temperature, heater, filter, bubbles, jets, ozone and UVC can be read and controlled alongside the rest of your smart home. The app detects which features your inflatable model supports and only shows the relevant controls.
+
+Build Flows that preheat the water before you arrive home, switch off bubbles when a movie starts, alert you when a fault is detected, or log water temperature to Insights. Before adding the device, open the app settings to enter your M-Spa account credentials and region; the app then discovers every spa linked to your account.

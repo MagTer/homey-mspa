@@ -173,7 +173,10 @@ describe('MspaDevice', () => {
     // Set up store with credentials
     (device as any)._store = {
       product_id: 'test-product-id',
-      product_series: 'Frame', // Supports all capabilities
+      // Muse includes hydrojets + bubbles + ozone; UVC is filtered out.
+      // Individual tests override product_model/product_series when they
+      // need to exercise different capability profiles.
+      product_series: 'Muse',
     };
     (device as any)._data = { id: 'test-device-id' };
     (device as any)._available = true;
@@ -232,7 +235,8 @@ describe('MspaDevice', () => {
       expect(device.getCapabilityValue('mspa_filter')).toBe(false);
       expect(device.getCapabilityValue('mspa_jets')).toBe(false);
       expect(device.getCapabilityValue('mspa_ozone')).toBe(true);
-      expect(device.getCapabilityValue('mspa_uvc')).toBe(false);
+      // Muse profile has no UVC — capability is removed during onInit
+      expect(device.hasCapability('mspa_uvc')).toBe(false);
       expect(device.getCapabilityValue('bubble_level')).toBe('2');
       expect(device.getCapabilityValue('heater_active')).toBe(true);
       expect(device.getCapabilityValue('filter_active')).toBe(false);
@@ -359,7 +363,8 @@ describe('MspaDevice', () => {
       expect(device.getCapabilityValue('mspa_filter')).toBe(false);
       expect(device.getCapabilityValue('mspa_jets')).toBe(true);
       expect(device.getCapabilityValue('mspa_ozone')).toBe(false);
-      expect(device.getCapabilityValue('mspa_uvc')).toBe(true);
+      // Muse profile has no UVC — capability is removed during onInit
+      expect(device.hasCapability('mspa_uvc')).toBe(false);
       expect(device.getCapabilityValue('bubble_level')).toBe('3'); // 3 → '3'
       expect(device.getCapabilityValue('heater_active')).toBe(true);
       expect(device.getCapabilityValue('filter_active')).toBe(false);
@@ -1018,27 +1023,44 @@ describe('MspaDevice', () => {
       expect(device.hasCapability('mspa_heater')).toBe(true);
     });
 
-    it('should keep all capabilities for a Frame model', async () => {
-      // Setup: Frame model (All features)
+    it('should drop only hydrojets for a generic Frame model (keeps bubbles, UVC, ozone)', async () => {
       (device as any)._store = {
         product_id: 'test-product-id',
         product_series: 'Frame',
         product_model: 'F-01',
       };
-      
+
       (device as any)._capabilities['mspa_jets'] = false;
       (device as any)._capabilities['mspa_ozone'] = false;
       (device as any)._capabilities['mspa_uvc'] = false;
       (device as any)._capabilities['bubble_level'] = 'off';
 
-      // Act
       await device.onInit();
 
-      // Assert
-      expect(device.hasCapability('mspa_jets')).toBe(true);
+      expect(device.hasCapability('mspa_jets')).toBe(false);
       expect(device.hasCapability('mspa_ozone')).toBe(true);
       expect(device.hasCapability('mspa_uvc')).toBe(true);
       expect(device.hasCapability('bubble_level')).toBe(true);
+    });
+
+    it('should keep bubbles, UVC and ozone but drop jets for an F-TU062W (Tuscany)', async () => {
+      (device as any)._store = {
+        product_id: 'test-product-id',
+        product_series: 'Frame',
+        product_model: 'F-TU062W',
+      };
+
+      (device as any)._capabilities['mspa_jets'] = false;
+      (device as any)._capabilities['mspa_ozone'] = false;
+      (device as any)._capabilities['mspa_uvc'] = false;
+      (device as any)._capabilities['bubble_level'] = 'off';
+
+      await device.onInit();
+
+      expect(device.hasCapability('mspa_jets')).toBe(false);
+      expect(device.hasCapability('bubble_level')).toBe(true);
+      expect(device.hasCapability('mspa_ozone')).toBe(true);
+      expect(device.hasCapability('mspa_uvc')).toBe(true);
     });
 
     it('should use default profile for unknown models', async () => {

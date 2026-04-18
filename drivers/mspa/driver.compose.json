@@ -37,8 +37,9 @@
     }
   },
   "images": {
+    "small": "drivers/mspa/assets/images/small.png",
     "large": "drivers/mspa/assets/images/large.png",
-    "small": "drivers/mspa/assets/images/small.png"
+    "xlarge": "drivers/mspa/assets/images/xlarge.png"
   },
   "pair": [
     {
