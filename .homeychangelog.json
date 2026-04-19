@@ -1,14 +1,5 @@
 {
   "1.0.0": {
     "en": "Initial release"
-  },
-  "1.0.1": {
-    "en": "Re-encode app images to 8-bit PNG for store processing"
-  },
-  "1.0.2": {
-    "en": "Add source, support, bugs, homepage URLs, tags and contributors"
-  },
-  "1.0.3": {
-    "en": "Target Homey Pro only (drop cloud platform)"
   }
 }
