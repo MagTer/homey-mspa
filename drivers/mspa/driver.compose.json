@@ -4,8 +4,7 @@
   },
   "class": "sensor",
   "platforms": [
-    "local",
-    "cloud"
+    "local"
   ],
   "capabilities": [
     "measure_temperature",
