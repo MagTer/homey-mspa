@@ -1,69 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" width="960" height="960">
-  <defs>
-    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#4aa6ff"/>
-      <stop offset="1" stop-color="#1e6ed6"/>
-    </linearGradient>
-    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2a2a2a"/>
-      <stop offset="1" stop-color="#111"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Shadow beneath tub -->
-  <ellipse cx="480" cy="820" rx="360" ry="34" fill="#000" opacity="0.18"/>
-
-  <!-- Front shell (body) -->
-  <path d="M120 500
-           C120 420 280 380 480 380
-           C680 380 840 420 840 500
-           L840 700
-           C840 780 680 820 480 820
-           C280 820 120 780 120 700 Z"
-        fill="url(#shell)"/>
-
-  <!-- Horizontal panel lines (M-Spa quilted look) -->
-  <g stroke="#333" stroke-width="4" fill="none" opacity="0.6">
-    <path d="M130 560 C230 540 730 540 830 560"/>
-    <path d="M130 620 C230 600 730 600 830 620"/>
-    <path d="M130 680 C230 660 730 660 830 680"/>
-    <path d="M130 740 C230 720 730 720 830 740"/>
-  </g>
-
-  <!-- Rim highlight -->
-  <ellipse cx="480" cy="390" rx="360" ry="70" fill="#1a1a1a"/>
-  <ellipse cx="480" cy="380" rx="356" ry="66" fill="#2e2e2e"/>
-
-  <!-- Water surface -->
-  <ellipse cx="480" cy="378" rx="320" ry="54" fill="url(#water)"/>
-
-  <!-- Water highlights -->
-  <ellipse cx="400" cy="370" rx="90" ry="10" fill="#8cc5ff" opacity="0.7"/>
-  <ellipse cx="600" cy="388" rx="60" ry="6" fill="#8cc5ff" opacity="0.5"/>
-
-  <!-- Bubbles -->
-  <g fill="#ffffff" opacity="0.85">
-    <circle cx="380" cy="372" r="6"/>
-    <circle cx="420" cy="384" r="4"/>
-    <circle cx="455" cy="368" r="5"/>
-    <circle cx="505" cy="382" r="7"/>
-    <circle cx="550" cy="370" r="5"/>
-    <circle cx="585" cy="386" r="4"/>
-    <circle cx="620" cy="374" r="6"/>
-  </g>
-
-  <!-- Control box on right side -->
-  <rect x="760" y="500" width="70" height="110" rx="6" fill="#1a1a1a" stroke="#444" stroke-width="2"/>
-  <rect x="770" y="512" width="50" height="22" rx="2" fill="#1e90ff"/>
-  <circle cx="780" cy="558" r="5" fill="#2ecc71"/>
-  <circle cx="800" cy="558" r="5" fill="#e74c3c"/>
-  <rect x="772" y="578" width="46" height="6" rx="2" fill="#444"/>
-  <rect x="772" y="590" width="46" height="6" rx="2" fill="#444"/>
-
-  <!-- Steam wisps above water -->
-  <g stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.35">
-    <path d="M380 300 C370 270 400 260 390 230"/>
-    <path d="M460 280 C450 250 480 240 470 210"/>
-    <path d="M540 290 C530 260 560 250 550 220"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+  <!-- Hot tub / spa driver icon — right-side angle, dimensional -->
+  
+  <!-- Tub shadow/depth on bottom right -->
+  <ellipse cx="520" cy="780" rx="320" ry="50" fill="#000000" opacity="0.12"/>
+  
+  <!-- Main tub body (right-side view, slightly angled) -->
+  <path fill="#1E90FF" d="M160 380
+    C160 280 320 240 480 240
+    C640 240 800 280 800 380
+    L800 620
+    C800 720 640 780 480 780
+    C320 780 160 720 160 620 Z"/>
+  
+  <!-- Body highlight/shading for dimension (right side lighter) -->
+  <path fill="#4AA6FF" d="M640 260
+    C720 280 800 320 800 380
+    L800 620
+    C800 680 720 740 640 760
+    C680 680 680 340 640 260 Z" opacity="0.35"/>
+  
+  <!-- Horizontal panel lines for texture/dimension -->
+  <path fill="none" stroke="#0D6BB8" stroke-width="18" stroke-linecap="round" opacity="0.45"
+    d="M180 480 C300 520 660 520 780 480"/>
+  <path fill="none" stroke="#0D6BB8" stroke-width="18" stroke-linecap="round" opacity="0.45"
+    d="M195 560 C305 595 655 595 765 560"/>
+  <path fill="none" stroke="#0D6BB8" stroke-width="18" stroke-linecap="round" opacity="0.45"
+    d="M215 640 C315 670 645 670 745 640"/>
+  
+  <!-- Top rim (thickness) -->
+  <ellipse cx="480" cy="380" rx="340" ry="150" fill="#147ACC"/>
+  
+  <!-- Inner rim / water surface -->
+  <ellipse cx="480" cy="375" rx="300" ry="130" fill="#87CEFA"/>
+  
+  <!-- Water highlight -->
+  <ellipse cx="380" cy="360" rx="120" ry="30" fill="#B8E0FF" opacity="0.7"/>
+  
+  <!-- Bubbles on water -->
+  <circle cx="340" cy="390" r="35" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="440" cy="410" r="26" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="540" cy="385" r="32" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- Control box / pump on right side -->
+  <rect x="760" y="480" width="130" height="200" rx="22" fill="#0D6BB8"/>
+  <rect x="775" y="495" width="100" height="170" rx="16" fill="#147ACC"/>
+  
+  <!-- Control box details -->
+  <rect x="795" y="520" width="60" height="28" rx="6" fill="#1E90FF"/>
+  <circle cx="810" cy="580" r="14" fill="#2ECC71"/>
+  <circle cx="840" cy="580" r="14" fill="#E74C3C"/>
+  <rect x="800" y="620" width="50" height="10" rx="4" fill="#0A5A9E"/>
+  <rect x="800" y="640" width="50" height="10" rx="4" fill="#0A5A9E"/>
 </svg>
