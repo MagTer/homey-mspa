@@ -1,12 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
-  <!-- Driver icon: generic hot tub with warm water, right-side angle -->
+  <!-- Driver icon: side view of a hot tub device -->
   
-  <!-- Steam wisps (simple curved shapes) -->
-  <path fill="#1E90FF" d="M300 320 Q340 260 300 200 Q270 150 310 120 Q340 100 320 140 Q290 180 330 240 Q360 290 320 320 Z"/>
-  <path fill="#1E90FF" d="M460 310 Q500 250 460 190 Q430 140 470 110 Q500 90 480 130 Q450 170 490 230 Q520 280 480 310 Z"/>
-  <path fill="#1E90FF" d="M620 320 Q660 260 620 200 Q590 150 630 120 Q660 100 640 140 Q610 180 650 240 Q680 290 640 320 Z"/>
-  
-  <!-- Tub body (right-side angled view) -->
+  <!-- Tub body -->
   <path fill="#1E90FF" d="M140 420
     C140 320 260 280 480 280
     C700 280 820 320 820 420
@@ -14,7 +9,7 @@
     C820 740 700 800 480 800
     C260 800 140 740 140 640 Z"/>
   
-  <!-- Body side highlight for dimension (right side) -->
+  <!-- Body side highlight for dimension -->
   <path fill="#4AA6FF" d="M680 300
     C760 320 820 360 820 420
     L820 640

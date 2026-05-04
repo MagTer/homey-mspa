@@ -1,27 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- App icon: hot tub with warm water and steam -->
-  
-  <!-- Steam wisps (filled shapes) -->
-  <path fill="#1E90FF" d="M155 170 Q180 130 155 95 Q135 65 160 50 Q180 40 165 75 Q145 110 170 150 Q185 175 165 190 Q150 200 155 170 Z"/>
-  <path fill="#1E90FF" d="M245 160 Q270 120 245 85 Q225 55 250 40 Q270 30 255 65 Q235 100 260 140 Q275 165 255 180 Q240 190 245 160 Z"/>
-  <path fill="#1E90FF" d="M335 170 Q360 130 335 95 Q315 65 340 50 Q360 40 345 75 Q325 110 350 150 Q365 175 345 190 Q330 200 335 170 Z"/>
-  
-  <!-- Tub body -->
-  <path fill="#1E90FF" d="M80 280
-    C80 200 160 180 256 180
-    C352 180 432 200 432 280
-    L432 380
-    C432 440 352 460 256 460
-    C160 460 80 440 80 380 Z"/>
-  
+  <!-- App icon: top-down view of a circular spa -->
+  <!-- Outer rim -->
+  <circle cx="256" cy="256" r="200" fill="#1E90FF"/>
+  <!-- Inner rim -->
+  <circle cx="256" cy="256" r="175" fill="#147ACC"/>
   <!-- Water surface -->
-  <ellipse cx="256" cy="280" rx="160" ry="60" fill="#87CEFA"/>
-  
+  <circle cx="256" cy="256" r="155" fill="#87CEFA"/>
   <!-- Water highlight -->
-  <ellipse cx="210" cy="268" rx="65" ry="18" fill="#B8E0FF" opacity="0.7"/>
-  
+  <ellipse cx="216" cy="236" rx="70" ry="25" fill="#B8E0FF" opacity="0.7"/>
   <!-- Bubbles -->
-  <circle cx="190" cy="340" r="22" fill="#FFFFFF" opacity="0.9"/>
-  <circle cx="256" cy="355" r="16" fill="#FFFFFF" opacity="0.9"/>
-  <circle cx="322" cy="340" r="22" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="200" cy="220" r="22" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="280" cy="190" r="16" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="320" cy="260" r="20" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="240" cy="300" r="14" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="300" cy="310" r="12" fill="#FFFFFF" opacity="0.8"/>
+  <!-- Small pump indicator dot on rim -->
+  <circle cx="400" cy="256" r="18" fill="#0D6BB8"/>
+  <circle cx="400" cy="256" r="10" fill="#4AA6FF"/>
 </svg>
