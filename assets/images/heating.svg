@@ -1,3 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path d="M256 32c16 48-16 80-48 112s-64 64-64 128c0 88 80 160 176 160s160-72 160-160c0-48-24-80-56-112-16 16-40 16-56 0 16-48-16-96-48-128s-48-16-64 0zm0 320c-40 0-72-32-72-72 0-24 16-48 32-64 8 16 24 16 32 0 16 16 32 40 32 64 0 40-24 72-24 72z"/>
+  <!-- Heating capability icon: line art only, transparent background, no fill -->
+  <g fill="none" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Flame outline -->
+    <path d="M256 80
+             C256 80 160 176 160 288
+             C160 384 224 448 256 448
+             C288 448 352 384 352 288
+             C352 176 256 80 256 80 Z"/>
+    <!-- Inner flame detail -->
+    <path d="M256 176
+             C256 176 208 240 208 304
+             C208 352 232 384 256 384
+             C280 384 304 352 304 304
+             C304 240 256 176 256 176 Z"
+          stroke-width="20"/>
+  </g>
 </svg>
