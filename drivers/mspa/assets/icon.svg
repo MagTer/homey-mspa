@@ -1,69 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" width="960" height="960">
-  <defs>
-    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#4aa6ff"/>
-      <stop offset="1" stop-color="#1e6ed6"/>
-    </linearGradient>
-    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2a2a2a"/>
-      <stop offset="1" stop-color="#111"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Shadow beneath tub -->
-  <ellipse cx="480" cy="820" rx="360" ry="34" fill="#000" opacity="0.18"/>
-
-  <!-- Front shell (body) -->
-  <path d="M120 500
-           C120 420 280 380 480 380
-           C680 380 840 420 840 500
-           L840 700
-           C840 780 680 820 480 820
-           C280 820 120 780 120 700 Z"
-        fill="url(#shell)"/>
-
-  <!-- Horizontal panel lines (M-Spa quilted look) -->
-  <g stroke="#333" stroke-width="4" fill="none" opacity="0.6">
-    <path d="M130 560 C230 540 730 540 830 560"/>
-    <path d="M130 620 C230 600 730 600 830 620"/>
-    <path d="M130 680 C230 660 730 660 830 680"/>
-    <path d="M130 740 C230 720 730 720 830 740"/>
-  </g>
-
-  <!-- Rim highlight -->
-  <ellipse cx="480" cy="390" rx="360" ry="70" fill="#1a1a1a"/>
-  <ellipse cx="480" cy="380" rx="356" ry="66" fill="#2e2e2e"/>
-
-  <!-- Water surface -->
-  <ellipse cx="480" cy="378" rx="320" ry="54" fill="url(#water)"/>
-
-  <!-- Water highlights -->
-  <ellipse cx="400" cy="370" rx="90" ry="10" fill="#8cc5ff" opacity="0.7"/>
-  <ellipse cx="600" cy="388" rx="60" ry="6" fill="#8cc5ff" opacity="0.5"/>
-
-  <!-- Bubbles -->
-  <g fill="#ffffff" opacity="0.85">
-    <circle cx="380" cy="372" r="6"/>
-    <circle cx="420" cy="384" r="4"/>
-    <circle cx="455" cy="368" r="5"/>
-    <circle cx="505" cy="382" r="7"/>
-    <circle cx="550" cy="370" r="5"/>
-    <circle cx="585" cy="386" r="4"/>
-    <circle cx="620" cy="374" r="6"/>
-  </g>
-
-  <!-- Control box on right side -->
-  <rect x="760" y="500" width="70" height="110" rx="6" fill="#1a1a1a" stroke="#444" stroke-width="2"/>
-  <rect x="770" y="512" width="50" height="22" rx="2" fill="#1e90ff"/>
-  <circle cx="780" cy="558" r="5" fill="#2ecc71"/>
-  <circle cx="800" cy="558" r="5" fill="#e74c3c"/>
-  <rect x="772" y="578" width="46" height="6" rx="2" fill="#444"/>
-  <rect x="772" y="590" width="46" height="6" rx="2" fill="#444"/>
-
-  <!-- Steam wisps above water -->
-  <g stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.35">
-    <path d="M380 300 C370 270 400 260 390 230"/>
-    <path d="M460 280 C450 250 480 240 470 210"/>
-    <path d="M540 290 C530 260 560 250 550 220"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+  <!-- Driver icon: inflatable hot tub side view, line art only, transparent background -->
+  <g fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Tub outer body - side profile from right angle -->
+    <path d="M180 420
+             C180 340 320 300 480 300
+             C640 300 780 340 780 420
+             L780 620
+             C780 700 640 740 480 740
+             C320 740 180 700 180 620 Z"/>
+    
+    <!-- Top rim ellipse -->
+    <ellipse cx="480" cy="420" rx="300" ry="120"/>
+    
+    <!-- Water surface inside -->
+    <ellipse cx="480" cy="415" rx="260" ry="100"/>
+    
+    <!-- Horizontal panel seams for inflatable look -->
+    <path d="M200 500 C300 530 660 530 760 500" stroke-width="18" opacity="0.7"/>
+    <path d="M205 560 C305 590 655 590 755 560" stroke-width="18" opacity="0.7"/>
+    <path d="M215 620 C310 645 650 645 745 620" stroke-width="18" opacity="0.7"/>
+    
+    <!-- Control panel box on side -->
+    <rect x="660" y="460" width="80" height="110" rx="10"/>
+    <!-- Control panel screen -->
+    <rect x="675" y="475" width="50" height="25" rx="4"/>
+    <!-- Control panel buttons -->
+    <circle cx="690" cy="525" r="8"/>
+    <circle cx="710" cy="525" r="8"/>
+    <line x1="680" y1="555" x2="720" y2="555" stroke-width="12"/>
+    
+    <!-- Bubbles on water surface -->
+    <circle cx="380" cy="430" r="18"/>
+    <circle cx="460" cy="450" r="14"/>
+    <circle cx="540" cy="435" r="16"/>
+    <circle cx="600" cy="420" r="12"/>
+    
+    <!-- Water highlight -->
+    <path d="M340 400 C380 390 420 395 440 405" stroke-width="14" opacity="0.6"/>
   </g>
 </svg>

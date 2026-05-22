@@ -1,3 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path d="M96 64h320c14 0 22 16 14 27L320 240v168c0 6-3 11-8 14l-64 40c-11 7-24-1-24-14V240L82 91c-8-11 0-27 14-27z"/>
+  <!-- Filtering capability icon: funnel/filter line art only, transparent background, no fill -->
+  <g fill="none" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Funnel body -->
+    <path d="M80 80 L432 80 L280 280 L280 432 L232 432 L232 280 Z"/>
+    <!-- Horizontal flow lines inside funnel -->
+    <line x1="160" y1="140" x2="352" y2="140" stroke-width="20"/>
+    <line x1="200" y1="180" x2="312" y2="180" stroke-width="20"/>
+  </g>
 </svg>
