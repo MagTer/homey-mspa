@@ -1,8 +1,13 @@
 {
   "title": {
-    "en": "The filter is active",
-    "no": "Filteret er aktivt",
-    "de": "Der Filter ist aktiv"
+    "en": "The filter is !{{active|not active}}",
+    "de": "Der Filter ist !{{aktiv|nicht aktiv}}",
+    "no": "Filteret er !{{aktivt|ikke aktivt}}"
+  },
+  "titleFormatted": {
+    "en": "The filter is !{{active|not active}}",
+    "de": "Der Filter ist !{{aktiv|nicht aktiv}}",
+    "no": "Filteret er !{{aktivt|ikke aktivt}}"
   },
   "args": [
     {

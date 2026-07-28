@@ -2,19 +2,30 @@ import Homey from 'homey';
 import { MspaApiClient } from '../../lib/mspa-api/client.js';
 import MspaApp from '../../app.js';
 
+/** Homey inverts conditions automatically — always return a real boolean. */
+function isOn(value: unknown): boolean {
+  return value === true || value === 1 || value === '1' || value === 'true' || value === 'on';
+}
+
+function roundHalf(n: number): number {
+  return Math.round(n * 2) / 2;
+}
+
 export default class MspaDriver extends Homey.Driver {
   async onInit() {
     this.log('MspaDriver has been initialized');
 
-    // Register Flow Conditions
+    // Register Flow Conditions (return strict boolean so invert works)
     this.homey.flow.getConditionCard('heater_is_active')
       .registerRunListener(async (args) => {
-        return args.device.getCapabilityValue('heater_active') === true;
+        return isOn(args.device.getCapabilityValue('heater_active'))
+          || isOn(args.device.getCapabilityValue('mspa_heater'));
       });
 
     this.homey.flow.getConditionCard('filter_is_active')
       .registerRunListener(async (args) => {
-        return args.device.getCapabilityValue('filter_active') === true;
+        return isOn(args.device.getCapabilityValue('filter_active'))
+          || isOn(args.device.getCapabilityValue('mspa_filter'));
       });
 
     // Optional features: only true if capability exists and state is on
@@ -22,21 +33,21 @@ export default class MspaDriver extends Homey.Driver {
       .registerRunListener(async (args) => {
         const device = args.device;
         if (!device.hasCapability('mspa_jets')) return false;
-        return device.getCapabilityValue('mspa_jets') === true;
+        return isOn(device.getCapabilityValue('mspa_jets'));
       });
 
     this.homey.flow.getConditionCard('ozone_is_active')
       .registerRunListener(async (args) => {
         const device = args.device;
         if (!device.hasCapability('mspa_ozone')) return false;
-        return device.getCapabilityValue('mspa_ozone') === true;
+        return isOn(device.getCapabilityValue('mspa_ozone'));
       });
 
     this.homey.flow.getConditionCard('uvc_is_active')
       .registerRunListener(async (args) => {
         const device = args.device;
         if (!device.hasCapability('mspa_uvc')) return false;
-        return device.getCapabilityValue('mspa_uvc') === true;
+        return isOn(device.getCapabilityValue('mspa_uvc'));
       });
 
     this.homey.flow.getConditionCard('bubbles_is_active')
@@ -44,7 +55,8 @@ export default class MspaDriver extends Homey.Driver {
         const device = args.device;
         if (!device.hasCapability('bubble_level')) return false;
         const level = device.getCapabilityValue('bubble_level');
-        return level != null && level !== 'off' && level !== 0 && level !== '0';
+        if (level == null || level === 'off' || level === 0 || level === '0') return false;
+        return true;
       });
 
     // Solltemperatur (target_temperature), nicht gemessene Wassertemperatur
@@ -53,7 +65,7 @@ export default class MspaDriver extends Homey.Driver {
         const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
         const threshold = Number(args.temperature);
         if (!Number.isFinite(setTemp) || !Number.isFinite(threshold)) return false;
-        return setTemp >= threshold;
+        return setTemp > threshold;
       });
 
     this.homey.flow.getConditionCard('temperature_below')
@@ -61,7 +73,7 @@ export default class MspaDriver extends Homey.Driver {
         const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
         const threshold = Number(args.temperature);
         if (!Number.isFinite(setTemp) || !Number.isFinite(threshold)) return false;
-        return setTemp <= threshold;
+        return setTemp < threshold;
       });
 
     // Exakte Solltemperatur (0,5°C-Raster)
@@ -70,7 +82,6 @@ export default class MspaDriver extends Homey.Driver {
         const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
         const want = Number(args.temperature);
         if (!Number.isFinite(setTemp) || !Number.isFinite(want)) return false;
-        const roundHalf = (n: number) => Math.round(n * 2) / 2;
         return roundHalf(setTemp) === roundHalf(want);
       });
 

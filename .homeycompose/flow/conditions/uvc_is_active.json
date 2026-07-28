@@ -1,13 +1,13 @@
 {
   "title": {
-    "en": "UVC is active",
-    "de": "UVC ist aktiv",
-    "no": "UVC er aktivt"
+    "en": "UVC is !{{active|not active}}",
+    "de": "UVC ist !{{aktiv|nicht aktiv}}",
+    "no": "UVC er !{{aktivt|ikke aktivt}}"
   },
   "titleFormatted": {
-    "en": "UVC is active",
-    "de": "UVC ist aktiv",
-    "no": "UVC er aktivt"
+    "en": "UVC is !{{active|not active}}",
+    "de": "UVC ist !{{aktiv|nicht aktiv}}",
+    "no": "UVC er !{{aktivt|ikke aktivt}}"
   },
   "hint": {
     "en": "False if this spa model has no UVC or UVC is off.",

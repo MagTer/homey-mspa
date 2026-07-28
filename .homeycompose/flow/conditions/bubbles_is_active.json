@@ -1,13 +1,13 @@
 {
   "title": {
-    "en": "Bubbles are active",
-    "de": "Blubber ist aktiv",
-    "no": "Bobler er aktive"
+    "en": "Bubbles are !{{active|not active}}",
+    "de": "Blubber ist !{{aktiv|nicht aktiv}}",
+    "no": "Bobler er !{{aktive|ikke aktive}}"
   },
   "titleFormatted": {
-    "en": "Bubbles are active",
-    "de": "Blubber ist aktiv",
-    "no": "Bobler er aktive"
+    "en": "Bubbles are !{{active|not active}}",
+    "de": "Blubber ist !{{aktiv|nicht aktiv}}",
+    "no": "Bobler er !{{aktive|ikke aktive}}"
   },
   "hint": {
     "en": "True when bubble level is 1–3. False if no bubbles or off.",

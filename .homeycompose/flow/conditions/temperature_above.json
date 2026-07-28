@@ -1,13 +1,13 @@
 {
   "title": {
-    "en": "The target temperature is above …",
-    "de": "Die Solltemperatur liegt über …",
-    "no": "Måltemperaturen er over …"
+    "en": "The target temperature is !{{above|not above}} …",
+    "de": "Die Solltemperatur liegt !{{über|nicht über}} …",
+    "no": "Måltemperaturen er !{{over|ikke over}} …"
   },
   "titleFormatted": {
-    "en": "The target temperature is above [[temperature]]°C",
-    "de": "Die Solltemperatur liegt über [[temperature]]°C",
-    "no": "Måltemperaturen er over [[temperature]]°C"
+    "en": "The target temperature is !{{above|not above}} [[temperature]]°C",
+    "de": "Die Solltemperatur liegt !{{über|nicht über}} [[temperature]]°C",
+    "no": "Måltemperaturen er !{{over|ikke over}} [[temperature]]°C"
   },
   "hint": {
     "en": "Uses the set target temperature, not measured water temperature.",
