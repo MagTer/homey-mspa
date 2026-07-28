@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "Set UVC state",
-    "no": "Sett UVC-tilstand"
+    "no": "Sett UVC-tilstand",
+    "de": "UVC schalten"
   },
   "titleFormatted": {
     "en": "Turn UVC [[state]]",
-    "no": "Slå UVC [[state]]"
+    "no": "Slå UVC [[state]]",
+    "de": "UVC [[state]] schalten"
   },
   "args": [
     {
@@ -21,14 +23,16 @@
           "id": "on",
           "title": {
             "en": "on",
-            "no": "på"
+            "no": "på",
+            "de": "ein"
           }
         },
         {
           "id": "off",
           "title": {
             "en": "off",
-            "no": "av"
+            "no": "av",
+            "de": "aus"
           }
         }
       ]

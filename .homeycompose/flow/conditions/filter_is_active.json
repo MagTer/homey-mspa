@@ -1,7 +1,8 @@
 {
   "title": {
     "en": "The filter is active",
-    "no": "Filteret er aktivt"
+    "no": "Filteret er aktivt",
+    "de": "Der Filter ist aktiv"
   },
   "args": [
     {

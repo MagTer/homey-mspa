@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Jets",
-    "no": "Dyser"
+    "no": "Dyser",
+    "de": "Jets"
   },
   "getable": true,
   "setable": true,

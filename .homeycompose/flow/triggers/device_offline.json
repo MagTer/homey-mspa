@@ -1,7 +1,8 @@
 {
   "title": {
     "en": "The spa went offline",
-    "no": "Spaet gikk av nett"
+    "no": "Spaet gikk av nett",
+    "de": "Das Spa ist offline"
   },
   "args": [
     {

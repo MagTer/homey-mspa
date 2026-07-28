@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "UVC",
-    "no": "UVC"
+    "no": "UVC",
+    "de": "UVC"
   },
   "getable": true,
   "setable": true,

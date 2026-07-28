@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Heater",
-    "no": "Varmer"
+    "no": "Varmer",
+    "de": "Heizung"
   },
   "getable": true,
   "setable": true,

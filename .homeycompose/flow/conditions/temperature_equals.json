@@ -1,0 +1,36 @@
+{
+  "title": {
+    "en": "The temperature is exactly …",
+    "de": "Die Temperatur ist genau …",
+    "no": "Temperaturen er nøyaktig …"
+  },
+  "titleFormatted": {
+    "en": "The temperature is exactly [[temperature]]°C",
+    "de": "Die Temperatur ist genau [[temperature]]°C",
+    "no": "Temperaturen er nøyaktig [[temperature]]°C"
+  },
+  "hint": {
+    "en": "Compares the measured water temperature (rounded to 0.5°C steps).",
+    "de": "Vergleicht die gemessene Wassertemperatur (auf 0,5°C-Schritte gerundet).",
+    "no": "Sammenligner målt vanntemperatur (avrundet til 0,5°C-trinn)."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    },
+    {
+      "name": "temperature",
+      "type": "number",
+      "placeholder": {
+        "en": "Temperature",
+        "de": "Temperatur",
+        "no": "Temperatur"
+      },
+      "min": 0,
+      "max": 50,
+      "step": 0.5
+    }
+  ]
+}

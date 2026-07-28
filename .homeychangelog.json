@@ -10,5 +10,21 @@
   },
   "1.0.3": {
     "en": "Image update"
+  },
+  "1.0.4": {
+    "en": "Flow: AND condition “temperature is exactly …°C” (water temperature).",
+    "de": "Flow: UND-Bedingung „Die Temperatur ist genau …°C“ (Wassertemperatur)."
+  },
+  "1.0.5": {
+    "en": "German UI: flows, capabilities, driver titles, and app settings (locales de/en/no).",
+    "de": "Deutsche Oberfläche: Flows, Capabilities, Gerätetitel und App-Einstellungen (Locales de/en/no)."
+  },
+  "1.0.6": {
+    "en": "Flow AND: bubbles / jets / ozone / UVC active (only if the model exposes that feature).",
+    "de": "Flow UND: Blubber / Düsen / Ozon / UVC aktiv (nur wenn das Modell die Funktion hat)."
+  },
+  "1.0.7": {
+    "en": "Fix: AND conditions for ozone/jets/UVC/bubbles always listed (no capability filter hiding cards).",
+    "de": "Fix: UND-Karten Ozon/Düsen/UVC/Blubber immer sichtbar (kein Capability-Filter, der Karten ausblendet)."
   }
 }

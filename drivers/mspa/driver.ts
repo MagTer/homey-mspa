@@ -17,6 +17,36 @@ export default class MspaDriver extends Homey.Driver {
         return args.device.getCapabilityValue('filter_active') === true;
       });
 
+    // Optional features: only true if capability exists and state is on
+    this.homey.flow.getConditionCard('jets_is_active')
+      .registerRunListener(async (args) => {
+        const device = args.device;
+        if (!device.hasCapability('mspa_jets')) return false;
+        return device.getCapabilityValue('mspa_jets') === true;
+      });
+
+    this.homey.flow.getConditionCard('ozone_is_active')
+      .registerRunListener(async (args) => {
+        const device = args.device;
+        if (!device.hasCapability('mspa_ozone')) return false;
+        return device.getCapabilityValue('mspa_ozone') === true;
+      });
+
+    this.homey.flow.getConditionCard('uvc_is_active')
+      .registerRunListener(async (args) => {
+        const device = args.device;
+        if (!device.hasCapability('mspa_uvc')) return false;
+        return device.getCapabilityValue('mspa_uvc') === true;
+      });
+
+    this.homey.flow.getConditionCard('bubbles_is_active')
+      .registerRunListener(async (args) => {
+        const device = args.device;
+        if (!device.hasCapability('bubble_level')) return false;
+        const level = device.getCapabilityValue('bubble_level');
+        return level != null && level !== 'off' && level !== 0 && level !== '0';
+      });
+
     this.homey.flow.getConditionCard('temperature_above')
       .registerRunListener(async (args) => {
         const currentTemp = args.device.getCapabilityValue('measure_temperature');
@@ -27,6 +57,16 @@ export default class MspaDriver extends Homey.Driver {
       .registerRunListener(async (args) => {
         const currentTemp = args.device.getCapabilityValue('measure_temperature');
         return currentTemp <= args.temperature;
+      });
+
+    // Exakte Temperatur (0,5°C-Raster wie M-Spa-Anzeige)
+    this.homey.flow.getConditionCard('temperature_equals')
+      .registerRunListener(async (args) => {
+        const currentTemp = Number(args.device.getCapabilityValue('measure_temperature'));
+        const target = Number(args.temperature);
+        if (!Number.isFinite(currentTemp) || !Number.isFinite(target)) return false;
+        const roundHalf = (n: number) => Math.round(n * 2) / 2;
+        return roundHalf(currentTemp) === roundHalf(target);
       });
 
     // Register Flow Actions

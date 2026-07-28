@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "Set ozone state",
-    "no": "Sett ozon-tilstand"
+    "no": "Sett ozon-tilstand",
+    "de": "Ozon schalten"
   },
   "titleFormatted": {
     "en": "Turn ozone [[state]]",
-    "no": "Slå ozon [[state]]"
+    "no": "Slå ozon [[state]]",
+    "de": "Ozon [[state]] schalten"
   },
   "args": [
     {
@@ -21,14 +23,16 @@
           "id": "on",
           "title": {
             "en": "on",
-            "no": "på"
+            "no": "på",
+            "de": "ein"
           }
         },
         {
           "id": "off",
           "title": {
             "en": "off",
-            "no": "av"
+            "no": "av",
+            "de": "aus"
           }
         }
       ]

@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Ozone",
-    "no": "Ozon"
+    "no": "Ozon",
+    "de": "Ozon"
   },
   "getable": true,
   "setable": true,

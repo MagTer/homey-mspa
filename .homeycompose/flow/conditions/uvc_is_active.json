@@ -1,0 +1,24 @@
+{
+  "title": {
+    "en": "UVC is active",
+    "de": "UVC ist aktiv",
+    "no": "UVC er aktivt"
+  },
+  "titleFormatted": {
+    "en": "UVC is active",
+    "de": "UVC ist aktiv",
+    "no": "UVC er aktivt"
+  },
+  "hint": {
+    "en": "False if this spa model has no UVC or UVC is off.",
+    "de": "Falsch, wenn das Modell kein UVC hat oder UVC aus ist.",
+    "no": "Usann hvis modellen ikke har UVC eller UVC er av."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}

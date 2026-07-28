@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "Set bubble level",
-    "no": "Sett boblenivå"
+    "no": "Sett boblenivå",
+    "de": "Blasenstufe einstellen"
   },
   "titleFormatted": {
     "en": "Set bubble level to [[level]]",
-    "no": "Sett boblenivå til [[level]]"
+    "no": "Sett boblenivå til [[level]]",
+    "de": "Blasenstufe auf [[level]] stellen"
   },
   "args": [
     {
@@ -21,28 +23,32 @@
           "id": "off",
           "title": {
             "en": "off",
-            "no": "av"
+            "no": "av",
+            "de": "aus"
           }
         },
         {
           "id": "1",
           "title": {
             "en": "1",
-            "no": "1"
+            "no": "1",
+            "de": "1"
           }
         },
         {
           "id": "2",
           "title": {
             "en": "2",
-            "no": "2"
+            "no": "2",
+            "de": "2"
           }
         },
         {
           "id": "3",
           "title": {
             "en": "3",
-            "no": "3"
+            "no": "3",
+            "de": "3"
           }
         }
       ]

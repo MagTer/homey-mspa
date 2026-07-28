@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "The temperature changed",
-    "no": "Temperaturen ble endret"
+    "no": "Temperaturen ble endret",
+    "de": "Die Temperatur hat sich geändert"
   },
   "titleFormatted": {
     "en": "The temperature changed to [[temperature]]",
-    "no": "Temperaturen ble endret til [[temperature]]"
+    "no": "Temperaturen ble endret til [[temperature]]",
+    "de": "Die Temperatur hat sich auf [[temperature]]°C geändert"
   },
   "args": [
     {
@@ -19,7 +21,8 @@
       "name": "temperature",
       "title": {
         "en": "Temperature",
-        "no": "Temperatur"
+        "no": "Temperatur",
+        "de": "Temperatur"
       },
       "type": "number",
       "example": 38

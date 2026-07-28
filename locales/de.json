@@ -1,0 +1,18 @@
+{
+  "settings.title": "M-Spa-Konto",
+  "settings.email": "E-Mail",
+  "settings.email_placeholder": "email@beispiel.de",
+  "settings.password": "Passwort",
+  "settings.region": "API-Region",
+  "settings.region_row": "Rest der Welt (ROW)",
+  "settings.region_us": "Vereinigte Staaten (US)",
+  "settings.region_ch": "China (CH)",
+  "settings.save": "Prüfen und speichern",
+  "settings.connecting": "Verbinde mit Homey…",
+  "settings.connected": "Mit Homey verbunden",
+  "settings.need_credentials": "Bitte E-Mail und Passwort eingeben.",
+  "settings.verifying": "Zugangsdaten werden geprüft…",
+  "settings.saved": "Zugangsdaten geprüft und gespeichert.",
+  "settings.failed": "Prüfung fehlgeschlagen",
+  "settings.error": "Fehler"
+}

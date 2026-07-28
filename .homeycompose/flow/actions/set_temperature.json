@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "Set target temperature",
-    "no": "Sett måltemperatur"
+    "no": "Sett måltemperatur",
+    "de": "Solltemperatur einstellen"
   },
   "titleFormatted": {
     "en": "Set target temperature to [[temperature]]°C",
-    "no": "Sett måltemperatur til [[temperature]]°C"
+    "no": "Sett måltemperatur til [[temperature]]°C",
+    "de": "Solltemperatur auf [[temperature]]°C stellen"
   },
   "args": [
     {

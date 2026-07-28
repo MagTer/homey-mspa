@@ -1,7 +1,8 @@
 {
   "title": {
     "en": "The heater is active",
-    "no": "Varmeren er aktiv"
+    "no": "Varmeren er aktiv",
+    "de": "Die Heizung ist aktiv"
   },
   "args": [
     {

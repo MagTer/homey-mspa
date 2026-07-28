@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "A fault was detected",
-    "no": "En feil ble oppdaget"
+    "no": "En feil ble oppdaget",
+    "de": "Ein Fehler wurde erkannt"
   },
   "titleFormatted": {
     "en": "A fault was detected: [[fault_code]]",
-    "no": "En feil ble oppdaget: [[fault_code]]"
+    "no": "En feil ble oppdaget: [[fault_code]]",
+    "de": "Ein Fehler wurde erkannt: [[fault_code]]"
   },
   "args": [
     {
@@ -19,7 +21,8 @@
       "name": "fault_code",
       "title": {
         "en": "Fault Code",
-        "no": "Feilkode"
+        "no": "Feilkode",
+        "de": "Fehlercode"
       },
       "type": "string",
       "example": "E1"

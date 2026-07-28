@@ -1,0 +1,42 @@
+{
+  "id": "com.mspa.hot-tub",
+  "version": "1.0.7",
+  "compatibility": ">=12.0.1",
+  "sdk": 3,
+  "platforms": ["local"],
+  "name": {
+    "en": "M-Spa",
+    "de": "M-Spa",
+    "nl": "M-Spa",
+    "no": "M-Spa"
+  },
+  "description": {
+    "en": "Control and monitor your M-Spa hot tub directly from Homey.",
+    "de": "Steuere und überwache deinen M-Spa Whirlpool direkt mit Homey."
+  },
+  "category": ["climate"],
+  "brandColor": "#0077B6",
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Magnus Ternström",
+    "email": "copiis@vivaldi.net"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Copiis"
+      }
+    ]
+  },
+  "support": "https://github.com/Copiis/homey-mspa/issues",
+  "source": "https://github.com/Copiis/homey-mspa",
+  "homepage": "https://github.com/Copiis/homey-mspa",
+  "bugs": {
+    "url": "https://github.com/Copiis/homey-mspa/issues"
+  }
+}

@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "The temperature is above threshold",
-    "no": "Temperaturen er over grenseverdien"
+    "no": "Temperaturen er over grenseverdien",
+    "de": "Die Temperatur liegt über dem Schwellenwert"
   },
   "titleFormatted": {
     "en": "The temperature is above [[temperature]]°C",
-    "no": "Temperaturen er over [[temperature]]°C"
+    "no": "Temperaturen er over [[temperature]]°C",
+    "de": "Die Temperatur liegt über [[temperature]]°C"
   },
   "args": [
     {
