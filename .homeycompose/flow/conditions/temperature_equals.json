@@ -1,18 +1,18 @@
 {
   "title": {
-    "en": "The temperature is exactly …",
-    "de": "Die Temperatur ist genau …",
-    "no": "Temperaturen er nøyaktig …"
+    "en": "The target temperature is exactly …",
+    "de": "Die Solltemperatur ist genau …",
+    "no": "Måltemperaturen er nøyaktig …"
   },
   "titleFormatted": {
-    "en": "The temperature is exactly [[temperature]]°C",
-    "de": "Die Temperatur ist genau [[temperature]]°C",
-    "no": "Temperaturen er nøyaktig [[temperature]]°C"
+    "en": "The target temperature is exactly [[temperature]]°C",
+    "de": "Die Solltemperatur ist genau [[temperature]]°C",
+    "no": "Måltemperaturen er nøyaktig [[temperature]]°C"
   },
   "hint": {
-    "en": "Compares the measured water temperature (rounded to 0.5°C steps).",
-    "de": "Vergleicht die gemessene Wassertemperatur (auf 0,5°C-Schritte gerundet).",
-    "no": "Sammenligner målt vanntemperatur (avrundet til 0,5°C-trinn)."
+    "en": "Compares the set target temperature (not measured water temperature), rounded to 0.5°C.",
+    "de": "Vergleicht die eingestellte Solltemperatur (nicht die gemessene Wassertemperatur), gerundet auf 0,5°C.",
+    "no": "Sammenligner innstilt måltemperatur (ikke målt vanntemperatur), avrundet til 0,5°C."
   },
   "args": [
     {
@@ -24,12 +24,12 @@
       "name": "temperature",
       "type": "number",
       "placeholder": {
-        "en": "Temperature",
-        "de": "Temperatur",
-        "no": "Temperatur"
+        "en": "Target temperature",
+        "de": "Solltemperatur",
+        "no": "Måltemperatur"
       },
-      "min": 0,
-      "max": 50,
+      "min": 20,
+      "max": 42,
       "step": 0.5
     }
   ]

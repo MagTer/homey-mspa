@@ -47,26 +47,31 @@ export default class MspaDriver extends Homey.Driver {
         return level != null && level !== 'off' && level !== 0 && level !== '0';
       });
 
+    // Solltemperatur (target_temperature), nicht gemessene Wassertemperatur
     this.homey.flow.getConditionCard('temperature_above')
       .registerRunListener(async (args) => {
-        const currentTemp = args.device.getCapabilityValue('measure_temperature');
-        return currentTemp >= args.temperature;
+        const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
+        const threshold = Number(args.temperature);
+        if (!Number.isFinite(setTemp) || !Number.isFinite(threshold)) return false;
+        return setTemp >= threshold;
       });
 
     this.homey.flow.getConditionCard('temperature_below')
       .registerRunListener(async (args) => {
-        const currentTemp = args.device.getCapabilityValue('measure_temperature');
-        return currentTemp <= args.temperature;
+        const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
+        const threshold = Number(args.temperature);
+        if (!Number.isFinite(setTemp) || !Number.isFinite(threshold)) return false;
+        return setTemp <= threshold;
       });
 
-    // Exakte Temperatur (0,5°C-Raster wie M-Spa-Anzeige)
+    // Exakte Solltemperatur (0,5°C-Raster)
     this.homey.flow.getConditionCard('temperature_equals')
       .registerRunListener(async (args) => {
-        const currentTemp = Number(args.device.getCapabilityValue('measure_temperature'));
-        const target = Number(args.temperature);
-        if (!Number.isFinite(currentTemp) || !Number.isFinite(target)) return false;
+        const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
+        const want = Number(args.temperature);
+        if (!Number.isFinite(setTemp) || !Number.isFinite(want)) return false;
         const roundHalf = (n: number) => Math.round(n * 2) / 2;
-        return roundHalf(currentTemp) === roundHalf(target);
+        return roundHalf(setTemp) === roundHalf(want);
       });
 
     // Register Flow Actions

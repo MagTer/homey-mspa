@@ -26,5 +26,9 @@
   "1.0.7": {
     "en": "Fix: AND conditions for ozone/jets/UVC/bubbles always listed (no capability filter hiding cards).",
     "de": "Fix: UND-Karten Ozon/Düsen/UVC/Blubber immer sichtbar (kein Capability-Filter, der Karten ausblendet)."
+  },
+  "1.0.8": {
+    "en": "Flow AND temperature conditions use set target temperature (not measured water temperature).",
+    "de": "Flow-UND Temperatur-Bedingungen nutzen die Solltemperatur (nicht die gemessene Wassertemperatur)."
   }
 }

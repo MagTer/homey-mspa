@@ -1,13 +1,18 @@
 {
   "title": {
-    "en": "The temperature is below threshold",
-    "no": "Temperaturen er under grenseverdien",
-    "de": "Die Temperatur liegt unter dem Schwellenwert"
+    "en": "The target temperature is below …",
+    "de": "Die Solltemperatur liegt unter …",
+    "no": "Måltemperaturen er under …"
   },
   "titleFormatted": {
-    "en": "The temperature is below [[temperature]]°C",
-    "no": "Temperaturen er under [[temperature]]°C",
-    "de": "Die Temperatur liegt unter [[temperature]]°C"
+    "en": "The target temperature is below [[temperature]]°C",
+    "de": "Die Solltemperatur liegt unter [[temperature]]°C",
+    "no": "Måltemperaturen er under [[temperature]]°C"
+  },
+  "hint": {
+    "en": "Uses the set target temperature, not measured water temperature.",
+    "de": "Nutzt die eingestellte Solltemperatur, nicht die gemessene Wassertemperatur.",
+    "no": "Bruker innstilt måltemperatur, ikke målt vanntemperatur."
   },
   "args": [
     {
@@ -18,8 +23,13 @@
     {
       "name": "temperature",
       "type": "number",
-      "min": 0,
-      "max": 50,
+      "placeholder": {
+        "en": "Target temperature",
+        "de": "Solltemperatur",
+        "no": "Måltemperatur"
+      },
+      "min": 20,
+      "max": 42,
       "step": 0.5
     }
   ]
