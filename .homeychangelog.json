@@ -34,5 +34,13 @@
   "1.0.9": {
     "en": "Flow AND invert: proper !{{…|…}} titles and strict boolean results for all conditions.",
     "de": "Flow-UND Umkehren: korrekte !{{…|…}}-Titel und echte Boolean-Ergebnisse für alle Bedingungen."
+  },
+  "1.0.10": {
+    "en": "Fix ozone/jets/UVC Flow: restore missing capabilities, correct active/not-active conditions, optimistic state after toggle (no more invalid_capability / inverted AND always true).",
+    "de": "Fix Ozon/Düsen/UVC-Flow: fehlende Capabilities wiederherstellen, UND aktiv/nicht aktiv korrekt, Zustand nach Schalten sofort (kein invalid_capability / „nicht aktiv“ immer wahr)."
+  },
+  "1.0.11": {
+    "en": "Fix: unknown spa models no longer strip ozone/UVC; force-restore capabilities for Flow control when missing.",
+    "de": "Fix: unbekannte Modelle entfernen Ozon/UVC nicht mehr; Capabilities für Flow werden bei Fehlen wiederhergestellt."
   }
 }

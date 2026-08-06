@@ -29,39 +29,30 @@ export default class MspaDevice extends Homey.Device {
 
     // Read stored non-sensitive data
     const { product_id, product_series, product_model } = this.getStore();
-    
-    // Apply product profile filtering
-    const profile = getProfile(product_series, product_model);
-    this.log(`Applying profile: ${profile.name} (Series: ${product_series}, Model: ${product_model})`);
 
-    if (!profile.hasJets && this.hasCapability('mspa_jets')) {
-      this.log('Removing unsupported capability: mspa_jets');
-      await this.removeCapability('mspa_jets');
-    }
-    if (!profile.hasOzone && this.hasCapability('mspa_ozone')) {
-      this.log('Removing unsupported capability: mspa_ozone');
-      await this.removeCapability('mspa_ozone');
-    }
-    if (!profile.hasUvc && this.hasCapability('mspa_uvc')) {
-      this.log('Removing unsupported capability: mspa_uvc');
-      await this.removeCapability('mspa_uvc');
-    }
-    if (!profile.hasBubbles && this.hasCapability('bubble_level')) {
-      this.log('Removing unsupported capability: bubble_level');
-      await this.removeCapability('bubble_level');
-    }
+    // Apply product profile: remove unsupported, re-add supported if missing
+    // (re-add fixes devices that lost mspa_ozone after wrong profile / old app)
+    await this.applyProfileCapabilities(product_series, product_model);
 
     // Initial sync
     await this.performPoll();
 
-    // Register capability listeners for all controllable capabilities
+    // Listeners only for capabilities that exist (avoids invalid_capability)
     this.registerCapabilityListener('target_temperature', this.handleTargetTemperature.bind(this));
     this.registerCapabilityListener('mspa_heater', this.handleHeater.bind(this));
     this.registerCapabilityListener('mspa_filter', this.handleFilter.bind(this));
-    this.registerCapabilityListener('bubble_level', this.handleBubbleLevel.bind(this));
-    this.registerCapabilityListener('mspa_jets', this.handleJets.bind(this));
-    this.registerCapabilityListener('mspa_ozone', this.handleOzone.bind(this));
-    this.registerCapabilityListener('mspa_uvc', this.handleUvc.bind(this));
+    if (this.hasCapability('bubble_level')) {
+      this.registerCapabilityListener('bubble_level', this.handleBubbleLevel.bind(this));
+    }
+    if (this.hasCapability('mspa_jets')) {
+      this.registerCapabilityListener('mspa_jets', this.handleJets.bind(this));
+    }
+    if (this.hasCapability('mspa_ozone')) {
+      this.registerCapabilityListener('mspa_ozone', this.handleOzone.bind(this));
+    }
+    if (this.hasCapability('mspa_uvc')) {
+      this.registerCapabilityListener('mspa_uvc', this.handleUvc.bind(this));
+    }
 
     this.log('Capability listeners registered');
 
@@ -76,6 +67,131 @@ export default class MspaDevice extends Homey.Device {
    */
   private getApiClient(): MspaApiClient | null {
     return (this.homey.app as MspaApp).getApiClient();
+  }
+
+  /**
+   * Sync optional capabilities with product profile (add missing, remove unsupported).
+   */
+  async applyProfileCapabilities(
+    productSeries?: string,
+    productModel?: string,
+  ): Promise<void> {
+    const store = this.getStore();
+    const series = productSeries ?? store.product_series ?? '';
+    const model = productModel ?? store.product_model ?? '';
+    const profile = getProfile(series, model);
+    this.log(
+      `Applying profile: ${profile.name} (Series: ${series}, Model: ${model})`,
+    );
+
+    const optional: Array<{
+      cap: string;
+      supported: boolean;
+    }> = [
+      { cap: 'mspa_jets', supported: profile.hasJets },
+      { cap: 'mspa_ozone', supported: profile.hasOzone },
+      { cap: 'mspa_uvc', supported: profile.hasUvc },
+      { cap: 'bubble_level', supported: profile.hasBubbles },
+    ];
+
+    // Unknown model (Standard): never strip optional caps — only add missing.
+    // Known series (Comfort/Delight/…): may remove features the model lacks.
+    const allowRemove = profile.name !== 'Standard';
+
+    for (const { cap, supported } of optional) {
+      if (supported && !this.hasCapability(cap)) {
+        this.log(`Adding missing capability: ${cap}`);
+        await this.addCapability(cap).catch((err: any) =>
+          this.error(`Failed to add ${cap}: ${err.message}`),
+        );
+      } else if (!supported && this.hasCapability(cap) && allowRemove) {
+        this.log(`Removing unsupported capability: ${cap}`);
+        await this.removeCapability(cap).catch((err: any) =>
+          this.error(`Failed to remove ${cap}: ${err.message}`),
+        );
+      }
+    }
+  }
+
+  /**
+   * Whether a boolean feature is on (capability value, else last shadow).
+   * Used by Flow AND-cards so state stays correct even if the capability
+   * was briefly missing or Homey has not mirrored the value yet.
+   */
+  isBooleanFeatureOn(
+    capabilityId: string,
+    shadowKey?: keyof ParsedShadow,
+  ): boolean {
+    if (this.hasCapability(capabilityId)) {
+      const v = this.getCapabilityValue(capabilityId);
+      if (v === true || v === 1 || v === '1' || v === 'true' || v === 'on') {
+        return true;
+      }
+      if (v === false || v === 0 || v === '0' || v === 'false' || v === 'off') {
+        return false;
+      }
+      // null/undefined: fall through to shadow
+    }
+    if (shadowKey && this.previousShadow) {
+      const sv = this.previousShadow[shadowKey];
+      if (typeof sv === 'boolean') return sv;
+      if (typeof sv === 'number') return sv > 0;
+    }
+    return false;
+  }
+
+  /**
+   * Ensure optional cap exists for Flow THEN/AND.
+   * If the product profile was unknown (Standard) or wrongly stripped the cap,
+   * force-add so the user can still control ozone/UVC/jets.
+   */
+  async ensureOptionalCapability(capabilityId: string): Promise<boolean> {
+    if (this.hasCapability(capabilityId)) return true;
+
+    await this.applyProfileCapabilities();
+    if (this.hasCapability(capabilityId)) {
+      this.registerFeatureListener(capabilityId);
+      return true;
+    }
+
+    // Last resort: force-add (profile denied or empty store) so Flow cards work.
+    // Comfort/Delight that truly lack ozone still get the cap; API may reject.
+    const forceable = ['mspa_ozone', 'mspa_uvc', 'mspa_jets', 'bubble_level'];
+    if (forceable.includes(capabilityId)) {
+      this.log(
+        `Force-adding ${capabilityId} (was missing after profile apply — store series/model may be empty or wrong)`,
+      );
+      try {
+        await this.addCapability(capabilityId);
+        this.registerFeatureListener(capabilityId);
+      } catch (err: any) {
+        this.error(`Force-add ${capabilityId} failed: ${err.message}`);
+      }
+    }
+    return this.hasCapability(capabilityId);
+  }
+
+  private registerFeatureListener(capabilityId: string): void {
+    try {
+      switch (capabilityId) {
+        case 'mspa_jets':
+          this.registerCapabilityListener('mspa_jets', this.handleJets.bind(this));
+          break;
+        case 'mspa_ozone':
+          this.registerCapabilityListener('mspa_ozone', this.handleOzone.bind(this));
+          break;
+        case 'mspa_uvc':
+          this.registerCapabilityListener('mspa_uvc', this.handleUvc.bind(this));
+          break;
+        case 'bubble_level':
+          this.registerCapabilityListener('bubble_level', this.handleBubbleLevel.bind(this));
+          break;
+        default:
+          break;
+      }
+    } catch (err: any) {
+      this.error(`Failed to register listener for ${capabilityId}: ${err.message}`);
+    }
   }
 
   /**
@@ -113,13 +229,14 @@ export default class MspaDevice extends Homey.Device {
 
     write('measure_temperature', shadow.water_temperature);
     write('target_temperature', shadow.temperature_setting);
-    write('mspa_heater', shadow.heater_state);
-    write('mspa_filter', shadow.filter_state);
-    write('mspa_jets', shadow.jet_state);
-    write('mspa_ozone', shadow.ozone_state);
-    write('mspa_uvc', shadow.uvc_state);
-    write('heater_active', shadow.heater_state);
-    write('filter_active', shadow.filter_state);
+    // Always boolean (never null/undefined) so hasCapability + Flow stay reliable
+    write('mspa_heater', !!shadow.heater_state);
+    write('mspa_filter', !!shadow.filter_state);
+    write('mspa_jets', !!shadow.jet_state);
+    write('mspa_ozone', !!shadow.ozone_state);
+    write('mspa_uvc', !!shadow.uvc_state);
+    write('heater_active', !!shadow.heater_state);
+    write('filter_active', !!shadow.filter_state);
 
     if (this.hasCapability('bubble_level')) {
       const bubbleValue = shadow.bubble_level === 0 ? 'off' : String(shadow.bubble_level);
@@ -273,6 +390,10 @@ export default class MspaDevice extends Homey.Device {
     try {
       await apiClient.sendCommand(deviceId, product_id, { jet_state: value ? 1 : 0 });
       this.log('Jets command sent');
+      if (this.hasCapability('mspa_jets')) {
+        await this.setCapabilityValue('mspa_jets', !!value)
+          .catch((err: any) => this.error(`Failed to mirror jets: ${err.message}`));
+      }
       this.startRapidPolling();
     } catch (err: any) {
       this.log(`Failed to send jets command: ${err.message}`);
@@ -296,6 +417,11 @@ export default class MspaDevice extends Homey.Device {
     try {
       await apiClient.sendCommand(deviceId, product_id, { ozone_state: value ? 1 : 0 });
       this.log('Ozone command sent');
+      // Optimistic mirror so Flow AND-cards see the new state before next poll
+      if (this.hasCapability('mspa_ozone')) {
+        await this.setCapabilityValue('mspa_ozone', !!value)
+          .catch((err: any) => this.error(`Failed to mirror ozone: ${err.message}`));
+      }
       this.startRapidPolling();
     } catch (err: any) {
       this.log(`Failed to send ozone command: ${err.message}`);
@@ -319,6 +445,10 @@ export default class MspaDevice extends Homey.Device {
     try {
       await apiClient.sendCommand(deviceId, product_id, { uvc_state: value ? 1 : 0 });
       this.log('UVC command sent');
+      if (this.hasCapability('mspa_uvc')) {
+        await this.setCapabilityValue('mspa_uvc', !!value)
+          .catch((err: any) => this.error(`Failed to mirror uvc: ${err.message}`));
+      }
       this.startRapidPolling();
     } catch (err: any) {
       this.log(`Failed to send UVC command: ${err.message}`);

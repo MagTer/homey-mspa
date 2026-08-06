@@ -28,24 +28,38 @@ export default class MspaDriver extends Homey.Driver {
           || isOn(args.device.getCapabilityValue('mspa_filter'));
       });
 
-    // Optional features: only true if capability exists and state is on
+    // Optional features: capability value, else last shadow (Homey invert needs real boolean)
     this.homey.flow.getConditionCard('jets_is_active')
       .registerRunListener(async (args) => {
-        const device = args.device;
+        const device = args.device as any;
+        if (typeof device.isBooleanFeatureOn === 'function') {
+          return device.isBooleanFeatureOn('mspa_jets', 'jet_state');
+        }
         if (!device.hasCapability('mspa_jets')) return false;
         return isOn(device.getCapabilityValue('mspa_jets'));
       });
 
     this.homey.flow.getConditionCard('ozone_is_active')
       .registerRunListener(async (args) => {
-        const device = args.device;
+        const device = args.device as any;
+        // If cap was dropped wrongly, try re-add once so Flow matches device UI
+        if (!device.hasCapability('mspa_ozone')
+          && typeof device.ensureOptionalCapability === 'function') {
+          await device.ensureOptionalCapability('mspa_ozone');
+        }
+        if (typeof device.isBooleanFeatureOn === 'function') {
+          return device.isBooleanFeatureOn('mspa_ozone', 'ozone_state');
+        }
         if (!device.hasCapability('mspa_ozone')) return false;
         return isOn(device.getCapabilityValue('mspa_ozone'));
       });
 
     this.homey.flow.getConditionCard('uvc_is_active')
       .registerRunListener(async (args) => {
-        const device = args.device;
+        const device = args.device as any;
+        if (typeof device.isBooleanFeatureOn === 'function') {
+          return device.isBooleanFeatureOn('mspa_uvc', 'uvc_state');
+        }
         if (!device.hasCapability('mspa_uvc')) return false;
         return isOn(device.getCapabilityValue('mspa_uvc'));
       });
@@ -108,18 +122,41 @@ export default class MspaDriver extends Homey.Driver {
 
     this.homey.flow.getActionCard('toggle_jets')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('mspa_jets', args.state === 'on');
+        return this.toggleOptionalBoolean(args.device, 'mspa_jets', args.state === 'on', 'jets');
       });
 
     this.homey.flow.getActionCard('toggle_ozone')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('mspa_ozone', args.state === 'on');
+        return this.toggleOptionalBoolean(args.device, 'mspa_ozone', args.state === 'on', 'ozone');
       });
 
     this.homey.flow.getActionCard('toggle_uvc')
       .registerRunListener(async (args) => {
-        return args.device.triggerCapabilityListener('mspa_uvc', args.state === 'on');
+        return this.toggleOptionalBoolean(args.device, 'mspa_uvc', args.state === 'on', 'UVC');
       });
+  }
+
+  /**
+   * Flow THEN: set optional boolean capability safely.
+   * Re-adds the capability if the profile supports it (fixes invalid_capability
+   * after the cap was removed once and never restored).
+   */
+  private async toggleOptionalBoolean(
+    device: any,
+    capabilityId: string,
+    on: boolean,
+    label: string,
+  ): Promise<void> {
+    if (!device.hasCapability(capabilityId)
+      && typeof device.ensureOptionalCapability === 'function') {
+      await device.ensureOptionalCapability(capabilityId);
+    }
+    if (!device.hasCapability(capabilityId)) {
+      throw new Error(
+        `This spa model has no ${label} control (capability ${capabilityId} missing).`,
+      );
+    }
+    await device.triggerCapabilityListener(capabilityId, on);
   }
 
   async onPair(session: any) {
