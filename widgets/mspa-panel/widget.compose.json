@@ -1,0 +1,37 @@
+{
+  "name": {
+    "en": "M-Spa Panel",
+    "de": "M-Spa Bedienfeld"
+  },
+  "height": 420,
+  "transparent": true,
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "capabilities": "mspa_heater"
+    }
+  },
+  "api": {
+    "listDevices": {
+      "method": "GET",
+      "path": "/devices"
+    },
+    "getStatus": {
+      "method": "GET",
+      "path": "/status"
+    },
+    "toggle": {
+      "method": "POST",
+      "path": "/toggle"
+    },
+    "setTemperature": {
+      "method": "POST",
+      "path": "/temperature"
+    },
+    "cycleBubble": {
+      "method": "POST",
+      "path": "/bubble"
+    }
+  }
+}

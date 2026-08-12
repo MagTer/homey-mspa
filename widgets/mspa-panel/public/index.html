@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <style>
+    :root {
+      --led: #5ec8f0;
+      --led-dim: #1a4a5c;
+      --led-soft: rgba(94, 200, 240, 0.35);
+      --panel: #0a0c10;
+      --panel-edge: #c8ccd2;
+      --key-bg: #11141a;
+      --key-border: #2a3038;
+      --key-off: #3a4550;
+      --danger: #e57373;
+      --ok: #81c784;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--led);
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .shell {
+      height: 100%;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 340px;
+      margin: 0 auto;
+      background:
+        radial-gradient(120% 80% at 50% 0%, #1a1e26 0%, var(--panel) 55%),
+        var(--panel);
+      border-radius: 28px;
+      border: 3px solid var(--panel-edge);
+      box-shadow:
+        0 0 0 1px #8a9098,
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 10px 28px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+      padding: 14px 14px 12px;
+      gap: 10px;
+      position: relative;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+
+    .display {
+      background: #020406;
+      border-radius: 14px;
+      border: 2px solid #1c222a;
+      box-shadow: inset 0 0 24px rgba(0,0,0,0.85);
+      padding: 12px 14px 10px;
+      min-height: 88px;
+      position: relative;
+    }
+
+    .display-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .temps {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .temp-main {
+      font-variant-numeric: tabular-nums;
+      font-size: 48px;
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: var(--led);
+      text-shadow: 0 0 12px var(--led-soft);
+      font-family: "SF Mono", "Roboto Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .temp-main .unit {
+      font-size: 18px;
+      margin-left: 2px;
+      vertical-align: super;
+      opacity: 0.9;
+    }
+
+    .temp-target {
+      font-variant-numeric: tabular-nums;
+      font-size: 18px;
+      color: var(--led);
+      opacity: 0.75;
+      font-family: "SF Mono", "Roboto Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .temp-target span.label {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-right: 4px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .status-icons {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
+    .wifi {
+      width: 18px;
+      height: 14px;
+      opacity: 0.35;
+    }
+    .wifi.on {
+      opacity: 1;
+      filter: drop-shadow(0 0 4px var(--led-soft));
+    }
+
+    .badge {
+      font-size: 10px;
+      letter-spacing: 0.4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--led-dim);
+      color: var(--led);
+      opacity: 0.85;
+      max-width: 110px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .msg {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #8aa0ad;
+      min-height: 14px;
+      text-align: center;
+    }
+    .msg.error { color: var(--danger); }
+    .msg.ok { color: var(--ok); }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      flex: 1;
+    }
+
+    .key {
+      background: linear-gradient(180deg, #161a22 0%, var(--key-bg) 100%);
+      border: 1px solid var(--key-border);
+      border-radius: 12px;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      color: var(--key-off);
+      transition: transform 0.08s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      padding: 6px 4px;
+    }
+
+    .key:active:not(.disabled):not(.missing) {
+      transform: scale(0.96);
+    }
+
+    .key .icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .key .icon svg {
+      width: 26px;
+      height: 26px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .key .lbl {
+      font-size: 10px;
+      line-height: 1.1;
+      text-align: center;
+      color: #7a8794;
+      max-width: 100%;
+      padding: 0 2px;
+    }
+
+    .key .lvl {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--led);
+      opacity: 0;
+    }
+
+    .key.on {
+      color: var(--led);
+      border-color: rgba(94, 200, 240, 0.55);
+      box-shadow:
+        0 0 10px rgba(94, 200, 240, 0.18),
+        inset 0 0 12px rgba(94, 200, 240, 0.08);
+    }
+
+    .key.on .lbl {
+      color: var(--led);
+    }
+
+    .key.on .lvl { opacity: 1; }
+
+    .key.missing,
+    .key.disabled {
+      opacity: 0.28;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .key.busy {
+      opacity: 0.7;
+    }
+
+    .key-wide {
+      grid-column: 2;
+    }
+
+    .arrow-row {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .arrow {
+      min-height: 52px;
+    }
+
+    .arrow .icon svg {
+      width: 30px;
+      height: 30px;
+      stroke-width: 2.2;
+    }
+
+    .brand {
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #9aa3ad;
+      font-weight: 600;
+      padding-top: 2px;
+    }
+    .brand em {
+      font-style: normal;
+      color: #b0b8c0;
+    }
+    .brand span {
+      font-weight: 400;
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    .empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 8px;
+      color: #9aa3ad;
+      font-size: 13px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="panel" id="panel">
+      <div class="display">
+        <div class="display-top">
+          <div class="temps">
+            <div class="temp-main" id="temp-main">--.-<span class="unit">°C</span></div>
+            <div class="temp-target" id="temp-target">
+              <span class="label">Soll</span><span id="temp-target-val">--.-</span>°C
+            </div>
+          </div>
+          <div class="status-icons">
+            <svg class="wifi" id="wifi" viewBox="0 0 24 18" aria-hidden="true">
+              <path d="M2 6c5.5-5 14.5-5 20 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M6 10c3.5-3.2 8.5-3.2 12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M10 14c1.8-1.5 4.2-1.5 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="16.5" r="1.4" fill="currentColor"/>
+            </svg>
+            <div class="badge" id="device-name">M-Spa</div>
+          </div>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+
+      <div class="keys" id="keys">
+        <!-- Row 1 -->
+        <button type="button" class="key" data-action="toggle" data-cap="mspa_heater" id="key-heater">
+          <div class="icon">
+            <svg viewBox="0 0 32 32"><path d="M8 20c0-4 3-6 3-10 0 0 5 3 5 9 0 3-2 5-5 5s-5-2-5-4z"/><path d="M18 18c0-3 2.5-5 2.5-8 0 0 4 2.5 4 7.5 0 2.5-1.7 4-4 4s-4-1.6-4-3.5z"/><path d="M6 26h20"/></svg>
+          </div>
+          <div class="lbl" data-i18n="heater">Heizung</div>
+        </button>
+
+        <button type="button" class="key" data-action="toggle" data-cap="mspa_filter" id="key-filter">
+          <div class="icon">
+            <svg viewBox="0 0 32 32"><path d="M8 8h16v4c0 3-2 5-4 6v8h-8v-8c-2-1-4-3-4-6V8z"/><path d="M12 12h8M12 16h8"/></svg>
+          </div>
+          <div class="lbl" data-i18n="filter">Umwälzpumpe</div>
+        </button>
+
+        <button type="button" class="key" data-action="toggle" data-cap="mspa_ozone" id="key-ozone">
+          <div class="icon">
+            <svg viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="9"/>
+              <text x="16" y="20" text-anchor="middle" fill="currentColor" stroke="none" font-size="10" font-family="sans-serif" font-weight="700">O₃</text>
+            </svg>
+          </div>
+          <div class="lbl" data-i18n="ozone">Ozon</div>
+        </button>
+
+        <!-- Row 2 -->
+        <button type="button" class="key" data-action="bubble" id="key-bubble">
+          <div class="lvl" id="bubble-lvl"></div>
+          <div class="icon">
+            <svg viewBox="0 0 32 32">
+              <circle cx="11" cy="20" r="4"/>
+              <circle cx="20" cy="16" r="5"/>
+              <circle cx="14" cy="10" r="3"/>
+              <circle cx="24" cy="24" r="2.5"/>
+            </svg>
+          </div>
+          <div class="lbl" data-i18n="bubbles">Blubber</div>
+        </button>
+
+        <button type="button" class="key" data-action="toggle" data-cap="mspa_uvc" id="key-uvc">
+          <div class="icon">
+            <svg viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="5"/>
+              <path d="M16 4v4M16 24v4M4 16h4M24 16h4M7.5 7.5l2.8 2.8M21.7 21.7l2.8 2.8M7.5 24.5l2.8-2.8M21.7 10.3l2.8-2.8"/>
+            </svg>
+          </div>
+          <div class="lbl" data-i18n="uvc">UV</div>
+        </button>
+
+        <button type="button" class="key disabled" id="key-timer" title="Timer nicht in der App">
+          <div class="icon">
+            <svg viewBox="0 0 32 32">
+              <circle cx="16" cy="17" r="9"/>
+              <path d="M16 17V11M16 17l4 3M12 5h8"/>
+            </svg>
+          </div>
+          <div class="lbl" data-i18n="timer">Timer Heizung</div>
+        </button>
+
+        <!-- Row 3: jets centered -->
+        <div></div>
+        <button type="button" class="key key-wide" data-action="toggle" data-cap="mspa_jets" id="key-jets">
+          <div class="icon">
+            <svg viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="3"/>
+              <path d="M16 5c2 4 2 7 0 11  -2-4-2-7 0-11z"/>
+              <path d="M27 16c-4 2-7 2-11 0 4-2 7-2 11 0z"/>
+              <path d="M16 27c-2-4-2-7 0-11 2 4 2 7 0 11z"/>
+              <path d="M5 16c4-2 7-2 11 0-4 2-7 2-11 0z"/>
+            </svg>
+          </div>
+          <div class="lbl" data-i18n="jets">Düse</div>
+        </button>
+        <div></div>
+      </div>
+
+      <div class="arrow-row">
+        <button type="button" class="key arrow" data-action="temp" data-delta="-0.5" id="key-temp-down">
+          <div class="icon">
+            <svg viewBox="0 0 32 32"><path d="M8 12l8 10 8-10"/></svg>
+          </div>
+          <div class="lbl">−0,5 °C</div>
+        </button>
+
+        <div class="brand"><em>m</em>Spa <span id="brand-sub">Panel</span></div>
+
+        <button type="button" class="key arrow" data-action="temp" data-delta="0.5" id="key-temp-up">
+          <div class="icon">
+            <svg viewBox="0 0 32 32"><path d="M8 20l8-10 8 10"/></svg>
+          </div>
+          <div class="lbl">+0,5 °C</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    const SYNC_MS = 5000;
+    const WIDGET_HEIGHT = 420;
+
+    let HomeyRef = null;
+    let deviceId = null;
+    let busy = false;
+    let lastStatus = null;
+
+    const LABELS = {
+      de: {
+        heater: 'Heizung',
+        filter: 'Umwälzpumpe',
+        ozone: 'Ozon',
+        bubbles: 'Blubber',
+        uvc: 'UV',
+        timer: 'Timer Heizung',
+        jets: 'Düse',
+        target: 'Soll',
+        pick: 'Widget-Einstellungen: M-Spa wählen.',
+        none: 'Kein M-Spa-Gerät gefunden.',
+        offline: 'Offline',
+        sent: 'Gesendet…',
+        err: 'Fehler',
+      },
+      en: {
+        heater: 'Heater',
+        filter: 'Filter pump',
+        ozone: 'Ozone',
+        bubbles: 'Bubbles',
+        uvc: 'UV',
+        timer: 'Heater timer',
+        jets: 'Jets',
+        target: 'Set',
+        pick: 'Open widget settings and select your M-Spa.',
+        none: 'No M-Spa device found.',
+        offline: 'Offline',
+        sent: 'Sent…',
+        err: 'Error',
+      },
+    };
+
+    function lang() {
+      try {
+        const l = (HomeyRef && HomeyRef.__ && HomeyRef.__('settings.title')) || '';
+        // Fallback: browser / Homey locale heuristics
+      } catch (e) { /* ignore */ }
+      const nav = (navigator.language || 'de').toLowerCase();
+      return nav.startsWith('de') ? 'de' : 'en';
+    }
+
+    function t(key) {
+      const pack = LABELS[lang()] || LABELS.de;
+      return pack[key] || LABELS.de[key] || key;
+    }
+
+    function fmtTemp(v) {
+      if (v === null || v === undefined || Number.isNaN(Number(v))) return '--.-';
+      return Number(v).toFixed(1);
+    }
+
+    function setMsg(text, kind) {
+      const el = document.getElementById('msg');
+      el.textContent = text || '';
+      el.className = 'msg' + (kind ? ' ' + kind : '');
+    }
+
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+      });
+      const targetLabel = document.querySelector('#temp-target .label');
+      if (targetLabel) targetLabel.textContent = t('target');
+    }
+
+    function setKeyState(id, on, missing) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('missing', !!missing);
+      el.classList.toggle('on', !missing && !!on);
+    }
+
+    function render(status) {
+      lastStatus = status;
+      if (!status || status.error) {
+        document.getElementById('temp-main').innerHTML = '--.-<span class="unit">°C</span>';
+        document.getElementById('temp-target-val').textContent = '--.-';
+        document.getElementById('wifi').classList.remove('on');
+        if (status && status.error === 'no_device') {
+          setMsg(t('pick'), 'error');
+        }
+        return;
+      }
+
+      document.getElementById('temp-main').innerHTML =
+        fmtTemp(status.measure_temperature) + '<span class="unit">°C</span>';
+      document.getElementById('temp-target-val').textContent = fmtTemp(status.target_temperature);
+      document.getElementById('device-name').textContent = status.name || 'M-Spa';
+      document.getElementById('wifi').classList.toggle('on', !!status.available);
+
+      setKeyState('key-heater', status.mspa_heater, false);
+      setKeyState('key-filter', status.mspa_filter, false);
+
+      const f = status.features || {};
+      setKeyState('key-ozone', status.mspa_ozone, !f.ozone);
+      setKeyState('key-uvc', status.mspa_uvc, !f.uvc);
+      setKeyState('key-jets', status.mspa_jets, !f.jets);
+
+      const bubbleKey = document.getElementById('key-bubble');
+      const bubbleLvl = document.getElementById('bubble-lvl');
+      if (!f.bubbles) {
+        bubbleKey.classList.add('missing');
+        bubbleKey.classList.remove('on');
+        bubbleLvl.textContent = '';
+      } else {
+        bubbleKey.classList.remove('missing');
+        const bl = status.bubble_level;
+        const on = bl && bl !== 'off' && bl !== 0 && bl !== '0';
+        bubbleKey.classList.toggle('on', !!on);
+        bubbleLvl.textContent = on ? String(bl) : '';
+      }
+
+      if (!status.available) {
+        setMsg(t('offline'), 'error');
+      } else if (!document.getElementById('msg').classList.contains('ok')) {
+        // keep "sent" briefly; otherwise clear soft errors
+        if (document.getElementById('msg').classList.contains('error')) {
+          /* keep */
+        } else {
+          setMsg('');
+        }
+      }
+    }
+
+    async function resolveDeviceId(Homey) {
+      try {
+        if (typeof Homey.getDeviceIds === 'function') {
+          const ids = Homey.getDeviceIds() || [];
+          if (ids.length) return ids[0];
+        }
+      } catch (e) { /* ignore */ }
+
+      try {
+        const settings = Homey.getSettings() || {};
+        if (settings.deviceId) return settings.deviceId;
+        if (settings.device && settings.device.id) return settings.device.id;
+      } catch (e) { /* ignore */ }
+
+      // Auto: single device
+      try {
+        const list = await Homey.api('GET', '/devices');
+        if (Array.isArray(list) && list.length === 1) return list[0].id;
+        if (Array.isArray(list) && list.length > 1) return null;
+      } catch (e) { /* ignore */ }
+
+      return null;
+    }
+
+    async function sync(Homey) {
+      if (!deviceId) {
+        deviceId = await resolveDeviceId(Homey);
+      }
+      if (!deviceId) {
+        render({ error: 'no_device' });
+        return;
+      }
+      try {
+        const status = await Homey.api('GET', '/status?deviceId=' + encodeURIComponent(deviceId));
+        render(status);
+      } catch (e) {
+        setMsg(t('err') + ': ' + (e.message || e), 'error');
+      }
+    }
+
+    async function runAction(fn) {
+      if (busy || !HomeyRef) return;
+      busy = true;
+      try {
+        if (typeof HomeyRef.hapticFeedback === 'function') {
+          try { HomeyRef.hapticFeedback(); } catch (e) { /* ignore */ }
+        }
+        setMsg(t('sent'), 'ok');
+        const result = await fn();
+        if (result) render(result);
+        else await sync(HomeyRef);
+        setTimeout(() => {
+          if (document.getElementById('msg').classList.contains('ok')) setMsg('');
+        }, 1200);
+      } catch (e) {
+        setMsg(t('err') + ': ' + (e.message || e), 'error');
+        await sync(HomeyRef);
+      } finally {
+        busy = false;
+      }
+    }
+
+    function wireKeys(Homey) {
+      document.querySelectorAll('.key[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (btn.classList.contains('missing') || btn.classList.contains('disabled')) return;
+          if (!deviceId) {
+            setMsg(t('pick'), 'error');
+            return;
+          }
+
+          const action = btn.getAttribute('data-action');
+
+          if (action === 'toggle') {
+            const cap = btn.getAttribute('data-cap');
+            // optimistic
+            btn.classList.toggle('on');
+            runAction(() => Homey.api('POST', '/toggle', { deviceId, capability: cap }));
+            return;
+          }
+
+          if (action === 'bubble') {
+            runAction(() => Homey.api('POST', '/bubble', { deviceId }));
+            return;
+          }
+
+          if (action === 'temp') {
+            const delta = parseFloat(btn.getAttribute('data-delta'));
+            // optimistic target
+            if (lastStatus && lastStatus.target_temperature != null) {
+              const next = Math.min(42, Math.max(20, Number(lastStatus.target_temperature) + delta));
+              document.getElementById('temp-target-val').textContent = fmtTemp(next);
+            }
+            runAction(() => Homey.api('POST', '/temperature', { deviceId, delta }));
+          }
+        });
+      });
+    }
+
+    function onHomeyReady(Homey) {
+      HomeyRef = Homey;
+      applyI18n();
+      Homey.ready({ height: WIDGET_HEIGHT });
+      wireKeys(Homey);
+
+      resolveDeviceId(Homey).then((id) => {
+        deviceId = id;
+        if (!deviceId) {
+          render({ error: 'no_device' });
+          return;
+        }
+        sync(Homey);
+        setInterval(() => sync(Homey), SYNC_MS);
+      });
+    }
+  </script>
+</body>
+</html>

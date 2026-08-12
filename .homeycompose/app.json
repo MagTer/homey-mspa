@@ -1,7 +1,7 @@
 {
   "id": "com.mspa.hot-tub",
-  "version": "1.0.11",
-  "compatibility": ">=12.0.1",
+  "version": "1.0.12",
+  "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": ["local"],
   "name": {
