@@ -46,5 +46,9 @@
   "1.0.12": {
     "en": "New interactive dashboard widget “M-Spa Panel” styled like the physical control panel (temperature, heater, filter, bubbles, UV, ozone, jets).",
     "de": "Neues interaktives Dashboard-Widget „M-Spa Bedienfeld“ im Stil des Original-Panels (Temperatur, Heizung, Pumpe, Blubber, UV, Ozon, Düsen)."
+  },
+  "1.0.13": {
+    "en": "Widget: Jets (Düse) always available — force-add capability when the model profile had removed it (e.g. Frame/Oslo).",
+    "de": "Widget: Düse immer bedienbar — Capability wird nachgezogen, wenn das Modellprofil sie entfernt hatte (z. B. Frame/Oslo)."
   }
 }

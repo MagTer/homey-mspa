@@ -537,7 +537,8 @@
       const f = status.features || {};
       setKeyState('key-ozone', status.mspa_ozone, !f.ozone);
       setKeyState('key-uvc', status.mspa_uvc, !f.uvc);
-      setKeyState('key-jets', status.mspa_jets, !f.jets);
+      // Düse always enabled (matches physical panel; API force-adds cap if profile stripped it)
+      setKeyState('key-jets', !!status.mspa_jets, false);
 
       const bubbleKey = document.getElementById('key-bubble');
       const bubbleLvl = document.getElementById('bubble-lvl');

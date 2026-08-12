@@ -34,6 +34,23 @@ async function resolveDevice(homey, deviceId) {
   return null;
 }
 
+/** Optional caps the physical panel exposes; force-add like Flow THEN cards. */
+const FORCEABLE_CAPS = ['mspa_jets', 'mspa_ozone', 'mspa_uvc', 'bubble_level'];
+
+async function ensureCapability(device, capability) {
+  if (device.hasCapability(capability)) return true;
+  if (typeof device.ensureOptionalCapability === 'function') {
+    return device.ensureOptionalCapability(capability);
+  }
+  if (!FORCEABLE_CAPS.includes(capability)) return false;
+  try {
+    await device.addCapability(capability);
+    return device.hasCapability(capability);
+  } catch {
+    return false;
+  }
+}
+
 function readStatus(device) {
   const has = (cap) => device.hasCapability(cap);
   const get = (cap, fallback = null) => (has(cap) ? device.getCapabilityValue(cap) : fallback);
@@ -47,14 +64,16 @@ function readStatus(device) {
     target_temperature: get('target_temperature'),
     mspa_heater: !!get('mspa_heater', false),
     mspa_filter: !!get('mspa_filter', false),
-    mspa_jets: has('mspa_jets') ? !!get('mspa_jets', false) : null,
+    // null only if we refuse control; Düse is always offered on the panel widget
+    mspa_jets: has('mspa_jets') ? !!get('mspa_jets', false) : false,
     mspa_ozone: has('mspa_ozone') ? !!get('mspa_ozone', false) : null,
     mspa_uvc: has('mspa_uvc') ? !!get('mspa_uvc', false) : null,
     bubble_level: has('bubble_level') ? get('bubble_level', 'off') : null,
     heater_active: has('heater_active') ? !!get('heater_active', false) : !!get('mspa_heater', false),
     filter_active: has('filter_active') ? !!get('filter_active', false) : !!get('mspa_filter', false),
     features: {
-      jets: has('mspa_jets'),
+      // Always show Düse (physical panel); capability is force-added on first toggle
+      jets: true,
       ozone: has('mspa_ozone'),
       uvc: has('mspa_uvc'),
       bubbles: has('bubble_level'),
@@ -90,8 +109,13 @@ export default {
 
     const device = await resolveDevice(homey, deviceId);
     if (!device) throw new Error('Device not found');
+
+    // Frame/Oslo profile may strip mspa_jets; restore like Flow THEN (force-add)
     if (!device.hasCapability(capability)) {
-      throw new Error(`Device has no capability ${capability}`);
+      const ok = await ensureCapability(device, capability);
+      if (!ok) {
+        throw new Error(`Device has no capability ${capability}`);
+      }
     }
 
     const current = !!device.getCapabilityValue(capability);
