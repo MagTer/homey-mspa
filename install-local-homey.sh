@@ -1,8 +1,9 @@
 #!/bin/bash
-# Arctic (Homey CLI): Build + local install — M-Spa fork
-# Primary (LAN): Homey Pro (Early 2023) → 192.168.188.62
-# WiFi backup IP: 192.168.188.86
-# See PROJEKT-REGELN.md → "Netzwerk / IPs (Arctic)"
+# Build the app and install it on a local Homey Pro via the Homey CLI.
+#
+# Requires the Homey CLI (npm i -g homey) and a logged-in session (homey login).
+# The CLI discovers the Homey on your network by itself; run `homey select` once
+# if you have more than one.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,16 +15,10 @@ if [[ -f "$HOME/.nvm/nvm.sh" ]]; then
   nvm use 2>/dev/null || true
 fi
 
-# Compose: bootstrap generated app.json (gitignored) from source if missing
-if [[ ! -f app.json && -f .homeycompose/app.json ]]; then
-  echo "=== Bootstrap app.json from .homeycompose/app.json ==="
-  cp .homeycompose/app.json app.json
-fi
-
 echo "=== Build ==="
 npm run build
 
-echo "=== Install locally (Homey 2023 LAN @ 192.168.188.62, WiFi backup .86) ==="
+echo "=== Install on local Homey ==="
 homey app install
 
-echo "✅ Local Homey update done (M-Spa / com.mspa.hot-tub)."
+echo "Done (com.mspa.hot-tub)."

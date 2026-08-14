@@ -1,0 +1,1015 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.mspa.hot-tub",
+  "version": "1.0.4",
+  "compatibility": ">=12.3.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "M-Spa",
+    "de": "M-Spa",
+    "nl": "M-Spa",
+    "no": "M-Spa",
+    "sv": "M-Spa"
+  },
+  "description": {
+    "en": "Control and monitor your M-Spa hot tub directly from Homey.",
+    "de": "Steuere und überwache deinen M-Spa Whirlpool direkt mit Homey.",
+    "no": "Kontroller og overvåk M-Spa-badekaret ditt direkte fra Homey.",
+    "sv": "Styr och övervaka ditt M-Spa-spabad direkt från Homey."
+  },
+  "category": [
+    "climate"
+  ],
+  "brandColor": "#0077B6",
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Magnus Ternström",
+    "email": "MagTer@users.noreply.github.com"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Copiis"
+      }
+    ]
+  },
+  "support": "https://github.com/MagTer/homey-mspa/issues",
+  "source": "https://github.com/MagTer/homey-mspa",
+  "homepage": "https://github.com/MagTer/homey-mspa",
+  "bugs": {
+    "url": "https://github.com/MagTer/homey-mspa/issues"
+  },
+  "esm": true,
+  "flow": {
+    "triggers": [
+      {
+        "title": {
+          "en": "The spa went offline",
+          "no": "Spaet gikk av nett",
+          "sv": "Spabadet gick offline",
+          "de": "Das Spa ist offline"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "device_offline"
+      },
+      {
+        "title": {
+          "en": "The spa came online",
+          "no": "Spaet kom på nett",
+          "sv": "Spabadet kom online",
+          "de": "Das Spa ist online"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "device_online"
+      },
+      {
+        "title": {
+          "en": "A fault was detected",
+          "no": "En feil ble oppdaget",
+          "sv": "Ett fel upptäcktes",
+          "de": "Ein Fehler wurde erkannt"
+        },
+        "titleFormatted": {
+          "en": "A fault was detected: [[fault_code]]",
+          "no": "En feil ble oppdaget: [[fault_code]]",
+          "sv": "Ett fel upptäcktes: [[fault_code]]",
+          "de": "Ein Fehler wurde erkannt: [[fault_code]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "fault_code",
+            "title": {
+              "en": "Fault Code",
+              "no": "Feilkode",
+              "sv": "Felkod",
+              "de": "Fehlercode"
+            },
+            "type": "string",
+            "example": "E1"
+          }
+        ],
+        "id": "fault_detected"
+      },
+      {
+        "title": {
+          "en": "The temperature changed",
+          "no": "Temperaturen ble endret",
+          "sv": "Temperaturen ändrades",
+          "de": "Die Temperatur hat sich geändert"
+        },
+        "titleFormatted": {
+          "en": "The temperature changed to [[temperature]]",
+          "no": "Temperaturen ble endret til [[temperature]]",
+          "sv": "Temperaturen ändrades till [[temperature]]",
+          "de": "Die Temperatur hat sich auf [[temperature]]°C geändert"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "temperature",
+            "title": {
+              "en": "Temperature",
+              "no": "Temperatur",
+              "sv": "Temperatur",
+              "de": "Temperatur"
+            },
+            "type": "number",
+            "example": 38
+          }
+        ],
+        "id": "temperature_changed"
+      }
+    ],
+    "conditions": [
+      {
+        "title": {
+          "en": "Bubbles are !{{active|not active}}",
+          "de": "Blubber ist !{{aktiv|nicht aktiv}}",
+          "no": "Bobler er !{{aktive|ikke aktive}}",
+          "sv": "Bubblorna är !{{aktiva|inte aktiva}}"
+        },
+        "titleFormatted": {
+          "en": "Bubbles are !{{active|not active}}",
+          "de": "Blubber ist !{{aktiv|nicht aktiv}}",
+          "no": "Bobler er !{{aktive|ikke aktive}}",
+          "sv": "Bubblorna är !{{aktiva|inte aktiva}}"
+        },
+        "hint": {
+          "en": "True when bubble level is 1–3. False if no bubbles or off.",
+          "de": "Wahr bei Blasenstufe 1–3. Falsch ohne Blubber oder bei aus.",
+          "no": "Sann ved boblenivå 1–3. Usann uten bobler eller av.",
+          "sv": "Sant när bubbelnivån är 1–3. Falskt om inga bubblor eller avstängt."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "bubbles_is_active"
+      },
+      {
+        "title": {
+          "en": "The filter is !{{active|not active}}",
+          "de": "Der Filter ist !{{aktiv|nicht aktiv}}",
+          "no": "Filteret er !{{aktivt|ikke aktivt}}",
+          "sv": "Filtret är !{{aktivt|inte aktivt}}"
+        },
+        "titleFormatted": {
+          "en": "The filter is !{{active|not active}}",
+          "de": "Der Filter ist !{{aktiv|nicht aktiv}}",
+          "no": "Filteret er !{{aktivt|ikke aktivt}}",
+          "sv": "Filtret är !{{aktivt|inte aktivt}}"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "filter_is_active"
+      },
+      {
+        "title": {
+          "en": "The heater is !{{active|not active}}",
+          "de": "Die Heizung ist !{{aktiv|nicht aktiv}}",
+          "no": "Varmeren er !{{aktiv|ikke aktiv}}",
+          "sv": "Värmaren är !{{aktiv|inte aktiv}}"
+        },
+        "titleFormatted": {
+          "en": "The heater is !{{active|not active}}",
+          "de": "Die Heizung ist !{{aktiv|nicht aktiv}}",
+          "no": "Varmeren er !{{aktiv|ikke aktiv}}",
+          "sv": "Värmaren är !{{aktiv|inte aktiv}}"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "heater_is_active"
+      },
+      {
+        "title": {
+          "en": "The jets are !{{active|not active}}",
+          "de": "Die Düsen sind !{{aktiv|nicht aktiv}}",
+          "no": "Dysene er !{{aktive|ikke aktive}}",
+          "sv": "Jetsen är !{{aktiva|inte aktiva}}"
+        },
+        "titleFormatted": {
+          "en": "The jets are !{{active|not active}}",
+          "de": "Die Düsen sind !{{aktiv|nicht aktiv}}",
+          "no": "Dysene er !{{aktive|ikke aktive}}",
+          "sv": "Jetsen är !{{aktiva|inte aktiva}}"
+        },
+        "hint": {
+          "en": "False if this spa model has no jets or jets are off.",
+          "de": "Falsch, wenn das Modell keine Düsen hat oder die Düsen aus sind.",
+          "no": "Usann hvis modellen ikke har dyser eller dysene er av.",
+          "sv": "Falskt om den här spamodellen saknar jets eller jetsen är avstängda."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "jets_is_active"
+      },
+      {
+        "title": {
+          "en": "Ozone is !{{active|not active}}",
+          "de": "Ozon ist !{{aktiv|nicht aktiv}}",
+          "no": "Ozon er !{{aktivt|ikke aktivt}}",
+          "sv": "Ozonet är !{{aktivt|inte aktivt}}"
+        },
+        "titleFormatted": {
+          "en": "Ozone is !{{active|not active}}",
+          "de": "Ozon ist !{{aktiv|nicht aktiv}}",
+          "no": "Ozon er !{{aktivt|ikke aktivt}}",
+          "sv": "Ozonet är !{{aktivt|inte aktivt}}"
+        },
+        "hint": {
+          "en": "False if this spa model has no ozone or ozone is off.",
+          "de": "Falsch, wenn das Modell kein Ozon hat oder Ozon aus ist.",
+          "no": "Usann hvis modellen ikke har ozon eller ozon er av.",
+          "sv": "Falskt om den här spamodellen saknar ozon eller ozonet är avstängt."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "ozone_is_active"
+      },
+      {
+        "title": {
+          "en": "The water temperature is !{{above|not above}} …",
+          "de": "Die Wassertemperatur liegt !{{über|nicht über}} …",
+          "no": "Vanntemperaturen er !{{over|ikke over}} …",
+          "sv": "Vattentemperaturen är !{{över|inte över}} …"
+        },
+        "titleFormatted": {
+          "en": "The water temperature is !{{above|not above}} [[temperature]]°C",
+          "de": "Die Wassertemperatur liegt !{{über|nicht über}} [[temperature]]°C",
+          "no": "Vanntemperaturen er !{{over|ikke over}} [[temperature]]°C",
+          "sv": "Vattentemperaturen är !{{över|inte över}} [[temperature]]°C"
+        },
+        "hint": {
+          "en": "Compares the measured water temperature (strictly greater than).",
+          "de": "Vergleicht die gemessene Wassertemperatur (strikt größer als).",
+          "no": "Sammenligner målt vanntemperatur (strengt større enn).",
+          "sv": "Jämför den uppmätta vattentemperaturen (strikt större än)."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "placeholder": {
+              "en": "Water temperature",
+              "de": "Wassertemperatur",
+              "no": "Vanntemperatur",
+              "sv": "Vattentemperatur"
+            },
+            "min": 0,
+            "max": 42,
+            "step": 0.5
+          }
+        ],
+        "id": "temperature_above"
+      },
+      {
+        "title": {
+          "en": "The water temperature is !{{below|not below}} …",
+          "de": "Die Wassertemperatur liegt !{{unter|nicht unter}} …",
+          "no": "Vanntemperaturen er !{{under|ikke under}} …",
+          "sv": "Vattentemperaturen är !{{under|inte under}} …"
+        },
+        "titleFormatted": {
+          "en": "The water temperature is !{{below|not below}} [[temperature]]°C",
+          "de": "Die Wassertemperatur liegt !{{unter|nicht unter}} [[temperature]]°C",
+          "no": "Vanntemperaturen er !{{under|ikke under}} [[temperature]]°C",
+          "sv": "Vattentemperaturen är !{{under|inte under}} [[temperature]]°C"
+        },
+        "hint": {
+          "en": "Compares the measured water temperature (strictly less than).",
+          "de": "Vergleicht die gemessene Wassertemperatur (strikt kleiner als).",
+          "no": "Sammenligner målt vanntemperatur (strengt mindre enn).",
+          "sv": "Jämför den uppmätta vattentemperaturen (strikt mindre än)."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "placeholder": {
+              "en": "Water temperature",
+              "de": "Wassertemperatur",
+              "no": "Vanntemperatur",
+              "sv": "Vattentemperatur"
+            },
+            "min": 0,
+            "max": 42,
+            "step": 0.5
+          }
+        ],
+        "id": "temperature_below"
+      },
+      {
+        "title": {
+          "en": "The target temperature is !{{exactly|not exactly}} …",
+          "de": "Die Solltemperatur ist !{{genau|nicht genau}} …",
+          "no": "Måltemperaturen er !{{nøyaktig|ikke nøyaktig}} …",
+          "sv": "Måltemperaturen är !{{exakt|inte exakt}} …"
+        },
+        "titleFormatted": {
+          "en": "The target temperature is !{{exactly|not exactly}} [[temperature]]°C",
+          "de": "Die Solltemperatur ist !{{genau|nicht genau}} [[temperature]]°C",
+          "no": "Måltemperaturen er !{{nøyaktig|ikke nøyaktig}} [[temperature]]°C",
+          "sv": "Måltemperaturen är !{{exakt|inte exakt}} [[temperature]]°C"
+        },
+        "hint": {
+          "en": "Compares the set target temperature (not measured water temperature), rounded to 0.5°C.",
+          "de": "Vergleicht die eingestellte Solltemperatur (nicht die gemessene Wassertemperatur), gerundet auf 0,5°C.",
+          "no": "Sammenligner innstilt måltemperatur (ikke målt vanntemperatur), avrundet til 0,5°C.",
+          "sv": "Jämför den inställda måltemperaturen (inte den uppmätta vattentemperaturen), avrundad till 0,5°C."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "placeholder": {
+              "en": "Target temperature",
+              "de": "Solltemperatur",
+              "no": "Måltemperatur",
+              "sv": "Måltemperatur"
+            },
+            "min": 20,
+            "max": 42,
+            "step": 0.5
+          }
+        ],
+        "id": "temperature_equals"
+      },
+      {
+        "title": {
+          "en": "UVC is !{{active|not active}}",
+          "de": "UVC ist !{{aktiv|nicht aktiv}}",
+          "no": "UVC er !{{aktivt|ikke aktivt}}",
+          "sv": "UVC är !{{aktivt|inte aktivt}}"
+        },
+        "titleFormatted": {
+          "en": "UVC is !{{active|not active}}",
+          "de": "UVC ist !{{aktiv|nicht aktiv}}",
+          "no": "UVC er !{{aktivt|ikke aktivt}}",
+          "sv": "UVC är !{{aktivt|inte aktivt}}"
+        },
+        "hint": {
+          "en": "False if this spa model has no UVC or UVC is off.",
+          "de": "Falsch, wenn das Modell kein UVC hat oder UVC aus ist.",
+          "no": "Usann hvis modellen ikke har UVC eller UVC er av.",
+          "sv": "Falskt om den här spamodellen saknar UVC eller UVC är avstängt."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          }
+        ],
+        "id": "uvc_is_active"
+      }
+    ],
+    "actions": [
+      {
+        "title": {
+          "en": "Set bubble level",
+          "no": "Sett boblenivå",
+          "sv": "Ställ in bubbelnivå",
+          "de": "Blasenstufe einstellen"
+        },
+        "titleFormatted": {
+          "en": "Set bubble level to [[level]]",
+          "no": "Sett boblenivå til [[level]]",
+          "sv": "Ställ in bubbelnivån på [[level]]",
+          "de": "Blasenstufe auf [[level]] stellen"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "level",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "title": {
+                  "en": "off",
+                  "no": "av",
+                  "sv": "av",
+                  "de": "aus"
+                }
+              },
+              {
+                "id": "1",
+                "title": {
+                  "en": "1",
+                  "no": "1",
+                  "sv": "1",
+                  "de": "1"
+                }
+              },
+              {
+                "id": "2",
+                "title": {
+                  "en": "2",
+                  "no": "2",
+                  "sv": "2",
+                  "de": "2"
+                }
+              },
+              {
+                "id": "3",
+                "title": {
+                  "en": "3",
+                  "no": "3",
+                  "sv": "3",
+                  "de": "3"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "set_bubble_level"
+      },
+      {
+        "title": {
+          "en": "Set target temperature",
+          "no": "Sett måltemperatur",
+          "sv": "Ställ in måltemperatur",
+          "de": "Solltemperatur einstellen"
+        },
+        "titleFormatted": {
+          "en": "Set target temperature to [[temperature]]°C",
+          "no": "Sett måltemperatur til [[temperature]]°C",
+          "sv": "Ställ in måltemperaturen på [[temperature]]°C",
+          "de": "Solltemperatur auf [[temperature]]°C stellen"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": 20,
+            "max": 42,
+            "step": 0.5
+          }
+        ],
+        "id": "set_temperature"
+      },
+      {
+        "title": {
+          "en": "Set filter state",
+          "no": "Sett filter-tilstand",
+          "sv": "Ställ in filtertillstånd",
+          "de": "Filter schalten"
+        },
+        "titleFormatted": {
+          "en": "Turn filter [[state]]",
+          "no": "Slå filter [[state]]",
+          "sv": "Slå [[state]] filtret",
+          "de": "Filter [[state]] schalten"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on",
+                  "no": "på",
+                  "sv": "på",
+                  "de": "ein"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off",
+                  "no": "av",
+                  "sv": "av",
+                  "de": "aus"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "toggle_filter"
+      },
+      {
+        "title": {
+          "en": "Set heater state",
+          "no": "Sett varmer-tilstand",
+          "sv": "Ställ in värmartillstånd",
+          "de": "Heizung schalten"
+        },
+        "titleFormatted": {
+          "en": "Turn heater [[state]]",
+          "no": "Slå varmer [[state]]",
+          "sv": "Slå [[state]] värmaren",
+          "de": "Heizung [[state]] schalten"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on",
+                  "no": "på",
+                  "sv": "på",
+                  "de": "ein"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off",
+                  "no": "av",
+                  "sv": "av",
+                  "de": "aus"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "toggle_heater"
+      },
+      {
+        "title": {
+          "en": "Set jets state",
+          "no": "Sett dyser-tilstand",
+          "sv": "Ställ in jets-tillstånd",
+          "de": "Jets schalten"
+        },
+        "titleFormatted": {
+          "en": "Turn jets [[state]]",
+          "no": "Slå dyser [[state]]",
+          "sv": "Slå [[state]] jetsen",
+          "de": "Jets [[state]] schalten"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on",
+                  "no": "på",
+                  "sv": "på",
+                  "de": "ein"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off",
+                  "no": "av",
+                  "sv": "av",
+                  "de": "aus"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "toggle_jets"
+      },
+      {
+        "title": {
+          "en": "Set ozone state",
+          "no": "Sett ozon-tilstand",
+          "sv": "Ställ in ozontillstånd",
+          "de": "Ozon schalten"
+        },
+        "titleFormatted": {
+          "en": "Turn ozone [[state]]",
+          "no": "Slå ozon [[state]]",
+          "sv": "Slå [[state]] ozonet",
+          "de": "Ozon [[state]] schalten"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on",
+                  "no": "på",
+                  "sv": "på",
+                  "de": "ein"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off",
+                  "no": "av",
+                  "sv": "av",
+                  "de": "aus"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "toggle_ozone"
+      },
+      {
+        "title": {
+          "en": "Set UVC state",
+          "no": "Sett UVC-tilstand",
+          "sv": "Ställ in UVC-tillstånd",
+          "de": "UVC schalten"
+        },
+        "titleFormatted": {
+          "en": "Turn UVC [[state]]",
+          "no": "Slå UVC [[state]]",
+          "sv": "Slå [[state]] UVC",
+          "de": "UVC [[state]] schalten"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=mspa"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "title": {
+                  "en": "on",
+                  "no": "på",
+                  "sv": "på",
+                  "de": "ein"
+                }
+              },
+              {
+                "id": "off",
+                "title": {
+                  "en": "off",
+                  "no": "av",
+                  "sv": "av",
+                  "de": "aus"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "toggle_uvc"
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "M-Spa Device",
+        "de": "M-Spa Gerät",
+        "no": "M-Spa-enhet",
+        "sv": "M-Spa-enhet"
+      },
+      "class": "sensor",
+      "platforms": [
+        "local"
+      ],
+      "capabilities": [
+        "measure_temperature",
+        "target_temperature",
+        "mspa_heater",
+        "mspa_filter",
+        "mspa_jets",
+        "mspa_ozone",
+        "mspa_uvc",
+        "bubble_level",
+        "heater_active",
+        "filter_active"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature": {
+          "title": {
+            "en": "Water Temperature",
+            "no": "Vanntemperatur",
+            "sv": "Vattentemperatur",
+            "de": "Wassertemperatur"
+          }
+        },
+        "target_temperature": {
+          "title": {
+            "en": "Target Temperature",
+            "no": "Måltemperatur",
+            "sv": "Måltemperatur",
+            "de": "Solltemperatur"
+          },
+          "min": 20,
+          "max": 42,
+          "step": 0.5
+        }
+      },
+      "images": {
+        "small": "drivers/mspa/assets/images/small.png",
+        "large": "drivers/mspa/assets/images/large.png",
+        "xlarge": "drivers/mspa/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "id": "mspa"
+    }
+  ],
+  "widgets": {
+    "mspa-panel": {
+      "name": {
+        "en": "M-Spa Panel",
+        "de": "M-Spa Bedienfeld",
+        "no": "M-Spa-panel",
+        "sv": "M-Spa-panel"
+      },
+      "height": 420,
+      "transparent": true,
+      "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {
+          "capabilities": "mspa_heater"
+        }
+      },
+      "api": {
+        "listDevices": {
+          "method": "GET",
+          "path": "/devices"
+        },
+        "getStatus": {
+          "method": "GET",
+          "path": "/status"
+        },
+        "toggle": {
+          "method": "POST",
+          "path": "/toggle"
+        },
+        "setTemperature": {
+          "method": "POST",
+          "path": "/temperature"
+        },
+        "cycleBubble": {
+          "method": "POST",
+          "path": "/bubble"
+        }
+      },
+      "id": "mspa-panel",
+      "settings": []
+    }
+  },
+  "capabilities": {
+    "bubble_level": {
+      "type": "enum",
+      "title": {
+        "en": "Bubble Level",
+        "no": "Boblenivå",
+        "sv": "Bubbelnivå",
+        "de": "Blasenstufe"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off",
+            "no": "Av",
+            "sv": "Av",
+            "de": "Aus"
+          }
+        },
+        {
+          "id": "1",
+          "title": {
+            "en": "Level 1",
+            "no": "Nivå 1",
+            "sv": "Nivå 1",
+            "de": "Stufe 1"
+          }
+        },
+        {
+          "id": "2",
+          "title": {
+            "en": "Level 2",
+            "no": "Nivå 2",
+            "sv": "Nivå 2",
+            "de": "Stufe 2"
+          }
+        },
+        {
+          "id": "3",
+          "title": {
+            "en": "Level 3",
+            "no": "Nivå 3",
+            "sv": "Nivå 3",
+            "de": "Stufe 3"
+          }
+        }
+      ]
+    },
+    "filter_active": {
+      "type": "boolean",
+      "title": {
+        "en": "Filtering",
+        "no": "Filtrerer",
+        "sv": "Filtrerar",
+        "de": "Filtert"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "assets/images/filtering.svg"
+    },
+    "heater_active": {
+      "type": "boolean",
+      "title": {
+        "en": "Heating",
+        "no": "Varmer opp",
+        "sv": "Värmer",
+        "de": "Heizt"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "assets/images/heating.svg"
+    },
+    "mspa_filter": {
+      "type": "boolean",
+      "title": {
+        "en": "Filter",
+        "no": "Filter",
+        "sv": "Filter",
+        "de": "Filter"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": false
+    },
+    "mspa_heater": {
+      "type": "boolean",
+      "title": {
+        "en": "Heater",
+        "no": "Varmer",
+        "sv": "Värmare",
+        "de": "Heizung"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": false
+    },
+    "mspa_jets": {
+      "type": "boolean",
+      "title": {
+        "en": "Jets",
+        "no": "Dyser",
+        "sv": "Jets",
+        "de": "Jets"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": false
+    },
+    "mspa_ozone": {
+      "type": "boolean",
+      "title": {
+        "en": "Ozone",
+        "no": "Ozon",
+        "sv": "Ozon",
+        "de": "Ozon"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": false
+    },
+    "mspa_uvc": {
+      "type": "boolean",
+      "title": {
+        "en": "UVC",
+        "no": "UVC",
+        "sv": "UVC",
+        "de": "UVC"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "uiQuickAction": false
+    }
+  }
+}

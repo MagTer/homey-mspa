@@ -1,0 +1,56 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Typecheck and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+  validate:
+    name: Validate Homey app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # The validator compiles the TypeScript itself, so node_modules has to be
+      # in the workspace before it runs — it does not install anything.
+      - name: Install dependencies
+        run: npm ci
+
+      # Composes .homeycompose/** into app.json and runs the App Store rules
+      # that publishing would run. Keep this green or the release will fail.
+      - uses: athombv/github-action-homey-app-validate@master
+        with:
+          level: publish
+
+      # Compose rewrites app.json in place during the step above. If the result
+      # differs from what is committed, the tracked file is stale — regenerate
+      # it with `npx homey app build` and commit the result.
+      - name: Check app.json is in sync with .homeycompose
+        run: git diff --exit-code -- app.json

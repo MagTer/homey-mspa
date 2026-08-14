@@ -5,16 +5,18 @@ Control and monitor your M-Spa hot tub directly from Homey.
 ## Features
 
 - **Temperature Monitoring**: See real-time water temperature.
-- **Full Control**: Set target temperature, toggle heater, filter, and bubbles.
+- **Full Control**: Set target temperature (20–42 °C), toggle heater, filter, and bubbles.
 - **Advanced Features**: Control Jets, Ozone sanitizer, and UVC (on supported models).
-- **Flow Support**: Build automations with spa triggers (e.g., "Temperature changed", "Fault detected") and actions.
+- **Dashboard Widget**: An interactive "M-Spa Panel" widget styled after the physical control panel.
+- **Flow Support**: Triggers ("Temperature changed", "Fault detected", device online/offline), actions for every control, and conditions for heater, filter, bubbles, jets, ozone, UVC and temperature.
 - **Status Visibility**: Get clear fault descriptions and connection status.
+- **Languages**: English, German, Norwegian and Swedish.
 
 ## Setup Instructions
 
 ### 1. Configure your Account
 Before adding your spa, you must configure your M-Spa account in the app settings:
-1.  Go to **More > Settings > Apps > M-Spa Hot Tub** in the Homey app.
+1.  Go to **More > Settings > Apps > M-Spa** in the Homey app.
 2.  Click **Configure App**.
 3.  Enter your **Email**, **Password**, and select your **Region**.
 4.  Click **Verify and Save**. The app will test your credentials against the M-Spa API.
@@ -29,10 +31,27 @@ Once your account is configured:
 
 ## Supported Models
 
-The app automatically detects your model's capabilities (e.g., Delight, Premium, Elite, Muse, Frame, Urban) and only shows the relevant controls in Homey. 
+Every model gets water temperature, target temperature, heater and filter. The
+app then matches your series against a profile and adds the optional controls
+that series has:
 
-- **Basic Models**: Heater, Filter, Bubbles.
-- **Advanced Models**: Adds Jets, Ozone, and UVC where supported.
+| Series | Bubbles | Jets | Ozone | UVC |
+| --- | :-: | :-: | :-: | :-: |
+| Comfort | ✅ | | | |
+| Delight | ✅ | | | |
+| Premium | ✅ | | ✅ | |
+| Urban | ✅ | | ✅ | ✅ |
+| Frame | ✅ | | ✅ | ✅ |
+| Verto | ✅ | | ✅ | ✅ |
+| Elite | ✅ | ✅ | ✅ | |
+| Muse | ✅ | ✅ | ✅ | |
+
+If your model is not recognized, the app keeps bubbles, ozone and UVC available
+rather than hiding them. That is deliberate: a control the spa does not have is
+simply rejected by the M-Spa cloud, while a control that was hidden by mistake
+used to be impossible to get back. If you see a control your spa does not have,
+that is why — please open an issue with your model code so the profile can be
+added.
 
 ## Troubleshooting
 
@@ -50,8 +69,25 @@ The project uses the Homey Compose pattern. To build and run:
 npx homey app run
 ```
 
+To build and install on your own Homey Pro: `npm run install:homey`.
+
+### Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: everything in the repository
+is written in English, user-facing text lives in the locale files, and existing
+Flow cards must not change meaning.
+
 ### API Client
-The API communication is centralized in `app.ts` to ensure global rate limiting (400ms throttle) and single authentication state.
+`app.ts` owns the single `MspaApiClient` and rebuilds it whenever the credentials
+change, so all devices share one authentication state and one 400 ms request
+throttle. The only exception is `api.js`, which builds a throw-away client to
+verify credentials from the settings page before they are saved.
+
+### Releases
+Pushes and pull requests run typecheck, unit tests and `homey app validate`.
+Releases are cut from the **Version** workflow in GitHub Actions, which bumps
+the version, writes the changelog and pushes a `v*` tag; the tag triggers
+**Publish**, which publishes to the Homey App Store. Do not edit the version or
+`.homeychangelog.json` by hand.
 
 ## Disclaimer
 
