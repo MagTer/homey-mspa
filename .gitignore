@@ -32,9 +32,5 @@ tmp/
 # Only the generated root app.json (Compose source stays versioned)
 /app.json
 
-# Copiis / Arctic (local, Syncthing, not GitHub)
-/PROJEKT-REGELN.md
-/AGENTS.md
-*.bak*
-.env.json
-/setup/grok/
+# Local scratch files
+*.bak

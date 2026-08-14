@@ -50,6 +50,8 @@ The project uses the Homey Compose pattern. To build and run:
 npx homey app run
 ```
 
+To build and install on your own Homey Pro: `npm run install:homey`.
+
 ### API Client
 The API communication is centralized in `app.ts` to ensure global rate limiting (400ms throttle) and single authentication state.
 
