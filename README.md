@@ -60,6 +60,13 @@ Flow cards must not change meaning.
 ### API Client
 The API communication is centralized in `app.ts` to ensure global rate limiting (400ms throttle) and single authentication state.
 
+### Releases
+Pushes and pull requests run typecheck, unit tests and `homey app validate`.
+Releases are cut from the **Version** workflow in GitHub Actions, which bumps
+the version, writes the changelog and pushes a `v*` tag; the tag triggers
+**Publish**, which publishes to the Homey App Store. Do not edit the version or
+`.homeychangelog.json` by hand.
+
 ## Disclaimer
 
 This app is not affiliated with or endorsed by M-Spa. It uses the M-Spa cloud API, based on the implementation by [snarky-snark/ha-mspa](https://github.com/snarky-snark/ha-mspa).

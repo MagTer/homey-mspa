@@ -1,0 +1,93 @@
+name: Version
+
+# Cuts a release: bumps the version, writes the changelog entry, commits, tags
+# and pushes. Pushing the v* tag is what starts the Publish workflow.
+#
+# Optional secret: RELEASE_TOKEN — a fine-grained PAT with "Contents: write" on
+# this repository. GitHub deliberately does not let a push made with the default
+# GITHUB_TOKEN trigger another workflow, so without RELEASE_TOKEN the tag is
+# created but Publish has to be started by hand (Actions → Publish → Run
+# workflow). With RELEASE_TOKEN set, the tag push chains into Publish.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        description: Version bump
+        required: true
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
+      changelog:
+        type: string
+        description: Changelog in English, written for users (not a commit log)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    name: Bump version and tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # Updates .homeycompose/app.json and .homeychangelog.json
+      - name: Update Homey app version
+        id: version
+        uses: athombv/github-action-homey-app-version@master
+        with:
+          version: ${{ inputs.version }}
+          changelog: ${{ inputs.changelog }}
+
+      # The Homey action does not know about npm metadata; keep them in step so
+      # the version check in publish.yml passes.
+      - name: Sync package.json and lockfile
+        run: |
+          npm version "${{ steps.version.outputs.version }}" \
+            --no-git-tag-version --allow-same-version
+
+      - name: Commit, tag and push
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git commit -m "chore(release): v${{ steps.version.outputs.version }}"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin HEAD --tags
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          TAG: v${{ steps.version.outputs.version }}
+          NOTES: ${{ steps.version.outputs.changelog }}
+        run: gh release create "$TAG" --title "$TAG" --notes "$NOTES"
+
+      - name: Summary
+        env:
+          TAG: v${{ steps.version.outputs.version }}
+          NOTES: ${{ steps.version.outputs.changelog }}
+          CHAINS: ${{ secrets.RELEASE_TOKEN != '' }}
+        run: |
+          {
+            echo "Tagged **$TAG**"
+            echo ""
+            echo "> $NOTES"
+            echo ""
+            if [ "$CHAINS" = "true" ]; then
+              echo "The Publish workflow starts automatically from the tag."
+            else
+              echo "RELEASE_TOKEN is not set — start the Publish workflow manually."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
