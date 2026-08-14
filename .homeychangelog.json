@@ -12,49 +12,9 @@
     "en": "Image update"
   },
   "1.0.4": {
-    "en": "Flow: AND condition “temperature is exactly …°C” (water temperature).",
-    "de": "Flow: UND-Bedingung „Die Temperatur ist genau …°C“ (Wassertemperatur)."
-  },
-  "1.0.5": {
-    "en": "German UI: flows, capabilities, driver titles, and app settings (locales de/en/no).",
-    "de": "Deutsche Oberfläche: Flows, Capabilities, Gerätetitel und App-Einstellungen (Locales de/en/no)."
-  },
-  "1.0.6": {
-    "en": "Flow AND: bubbles / jets / ozone / UVC active (only if the model exposes that feature).",
-    "de": "Flow UND: Blubber / Düsen / Ozon / UVC aktiv (nur wenn das Modell die Funktion hat)."
-  },
-  "1.0.7": {
-    "en": "Fix: AND conditions for ozone/jets/UVC/bubbles always listed (no capability filter hiding cards).",
-    "de": "Fix: UND-Karten Ozon/Düsen/UVC/Blubber immer sichtbar (kein Capability-Filter, der Karten ausblendet)."
-  },
-  "1.0.8": {
-    "en": "Flow AND temperature conditions use set target temperature (not measured water temperature).",
-    "de": "Flow-UND Temperatur-Bedingungen nutzen die Solltemperatur (nicht die gemessene Wassertemperatur)."
-  },
-  "1.0.9": {
-    "en": "Flow AND invert: proper !{{…|…}} titles and strict boolean results for all conditions.",
-    "de": "Flow-UND Umkehren: korrekte !{{…|…}}-Titel und echte Boolean-Ergebnisse für alle Bedingungen."
-  },
-  "1.0.10": {
-    "en": "Fix ozone/jets/UVC Flow: restore missing capabilities, correct active/not-active conditions, optimistic state after toggle (no more invalid_capability / inverted AND always true).",
-    "de": "Fix Ozon/Düsen/UVC-Flow: fehlende Capabilities wiederherstellen, UND aktiv/nicht aktiv korrekt, Zustand nach Schalten sofort (kein invalid_capability / „nicht aktiv“ immer wahr)."
-  },
-  "1.0.11": {
-    "en": "Fix: unknown spa models no longer strip ozone/UVC; force-restore capabilities for Flow control when missing.",
-    "de": "Fix: unbekannte Modelle entfernen Ozon/UVC nicht mehr; Capabilities für Flow werden bei Fehlen wiederhergestellt."
-  },
-  "1.0.12": {
-    "en": "New interactive dashboard widget “M-Spa Panel” styled like the physical control panel (temperature, heater, filter, bubbles, UV, ozone, jets).",
-    "de": "Neues interaktives Dashboard-Widget „M-Spa Bedienfeld“ im Stil des Original-Panels (Temperatur, Heizung, Pumpe, Blubber, UV, Ozon, Düsen)."
-  },
-  "1.0.13": {
-    "en": "Widget: Jets (Düse) always available — force-add capability when the model profile had removed it (e.g. Frame/Oslo).",
-    "de": "Widget: Düse immer bedienbar — Capability wird nachgezogen, wenn das Modellprofil sie entfernt hatte (z. B. Frame/Oslo)."
-  },
-  "1.0.14": {
-    "en": "Flow: temperature above/below conditions once again compare the measured water temperature (strictly >/<). New: Swedish language and completed Norwegian texts. Fix: optional features (ozone/UVC/jets) are no longer force-added on models that do not support them.",
-    "de": "Flow: Temperatur-Bedingungen über/unter vergleichen wieder die gemessene Wassertemperatur (strikt >/<). Neu: Schwedisch, norwegische Texte vervollständigt. Fix: Optionale Funktionen (Ozon/UVC/Düsen) werden auf Modellen ohne diese Ausstattung nicht mehr erzwungen.",
-    "no": "Flow: temperatur over/under sammenligner igjen den målte vanntemperaturen (strengt >/<). Nytt: svensk språk og fullførte norske tekster. Fiks: valgfrie funksjoner (ozon/UVC/jets) legges ikke lenger til på modeller som ikke støtter dem.",
-    "sv": "Flow: temperaturvillkoren över/under jämför återigen den uppmätta vattentemperaturen (strikt >/<). Nytt: svenskt språk och kompletterade norska texter. Fix: valfria funktioner (ozon/UVC/jets) läggs inte längre till på modeller som saknar dem."
+    "en": "New: interactive “M-Spa Panel” dashboard widget, Flow conditions for bubbles, jets, ozone and UVC, a condition for the exact target temperature, and conditions that can be inverted. Water temperature conditions now compare strictly above/below. Fix: optional features are no longer removed for good by a wrong model profile. New languages: German and Swedish, Norwegian completed.",
+    "de": "Neu: interaktives Dashboard-Widget „M-Spa Bedienfeld“, Flow-Bedingungen für Blubber, Düsen, Ozon und UVC, eine Bedingung für die genaue Solltemperatur und umkehrbare Bedingungen. Wassertemperatur-Bedingungen vergleichen jetzt strikt über/unter. Fix: Optionale Funktionen werden durch ein falsches Modellprofil nicht mehr dauerhaft entfernt. Neue Sprachen: Deutsch und Schwedisch, Norwegisch vervollständigt.",
+    "no": "Nytt: interaktiv dashbord-widget «M-Spa-panel», Flow-betingelser for bobler, dyser, ozon og UVC, en betingelse for nøyaktig måltemperatur, og betingelser som kan inverteres. Vanntemperatur-betingelser sammenligner nå strengt over/under. Fiks: valgfrie funksjoner fjernes ikke lenger permanent av feil modellprofil. Nye språk: tysk og svensk, norsk fullført.",
+    "sv": "Nytt: interaktiv instrumentpanels-widget ”M-Spa-panel”, Flow-villkor för bubblor, jets, ozon och UVC, ett villkor för exakt måltemperatur, och villkor som kan inverteras. Vattentemperaturvillkoren jämför nu strikt över/under. Fix: valfria funktioner tas inte längre bort permanent av fel modellprofil. Nya språk: tyska och svenska, norska kompletterat."
   }
 }
