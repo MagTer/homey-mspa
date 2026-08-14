@@ -33,6 +33,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # The validator compiles the TypeScript itself, so node_modules has to be
+      # in the workspace before it runs — it does not install anything.
+      - name: Install dependencies
+        run: npm ci
+
       # Composes .homeycompose/** into app.json and runs the App Store rules
       # that publishing would run. Keep this green or the release will fail.
       - uses: athombv/github-action-homey-app-validate@master
