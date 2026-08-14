@@ -29,10 +29,10 @@ coverage/
 .cache/
 tmp/
 .homeybuild/
-# Nur generiertes Root-app.json (Compose-Quelle bleibt versioniert)
+# Only the generated root app.json (Compose source stays versioned)
 /app.json
 
-# ── Copiis / Arctic (lokal, Syncthing, nicht GitHub) ──
+# Copiis / Arctic (local, Syncthing, not GitHub)
 /PROJEKT-REGELN.md
 /AGENTS.md
 *.bak*

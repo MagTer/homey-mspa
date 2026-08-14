@@ -50,5 +50,11 @@
   "1.0.13": {
     "en": "Widget: Jets (Düse) always available — force-add capability when the model profile had removed it (e.g. Frame/Oslo).",
     "de": "Widget: Düse immer bedienbar — Capability wird nachgezogen, wenn das Modellprofil sie entfernt hatte (z. B. Frame/Oslo)."
+  },
+  "1.0.14": {
+    "en": "Flow: temperature above/below conditions once again compare the measured water temperature (strictly >/<). New: Swedish language and completed Norwegian texts. Fix: optional features (ozone/UVC/jets) are no longer force-added on models that do not support them.",
+    "de": "Flow: Temperatur-Bedingungen über/unter vergleichen wieder die gemessene Wassertemperatur (strikt >/<). Neu: Schwedisch, norwegische Texte vervollständigt. Fix: Optionale Funktionen (Ozon/UVC/Düsen) werden auf Modellen ohne diese Ausstattung nicht mehr erzwungen.",
+    "no": "Flow: temperatur over/under sammenligner igjen den målte vanntemperaturen (strengt >/<). Nytt: svensk språk og fullførte norske tekster. Fiks: valgfrie funksjoner (ozon/UVC/jets) legges ikke lenger til på modeller som ikke støtter dem.",
+    "sv": "Flow: temperaturvillkoren över/under jämför återigen den uppmätta vattentemperaturen (strikt >/<). Nytt: svenskt språk och kompletterade norska texter. Fix: valfria funktioner (ozon/UVC/jets) läggs inte längre till på modeller som saknar dem."
   }
 }

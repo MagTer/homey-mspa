@@ -1,10 +1,10 @@
 #!/bin/bash
-# Lokales Backup vor Code-Änderung; behält .bak* bis 6 Monate (183 Tage).
-# Usage: ./backup-file.sh <datei> <thema>
+# Local backup before code changes; keeps .bak* files up to 6 months (183 days).
+# Usage: ./backup-file.sh <file> <topic>
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
-# 6 Monate ≈ 183 Tage (globale Regel, alle Projekte)
+# 6 months ≈ 183 days (global rule, all projects)
 RETENTION_DAYS=183
 
 if [[ $# -lt 2 ]]; then
