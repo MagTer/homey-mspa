@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "The spa is !{{online|offline}}",
+    "de": "Das Spa ist !{{online|offline}}",
+    "no": "Spaet er !{{online|offline}}",
+    "sv": "Spat är !{{online|offline}}"
+  },
+  "titleFormatted": {
+    "en": "The spa is !{{online|offline}}",
+    "de": "Das Spa ist !{{online|offline}}",
+    "no": "Spaet er !{{online|offline}}",
+    "sv": "Spat är !{{online|offline}}"
+  },
+  "hint": {
+    "en": "Online means Homey can reach the spa via the M-Spa cloud (last polls succeeded). Offline after several failed polls — or if the cloud/account is unreachable.",
+    "de": "Online heißt: Homey erreicht das Spa über die M-Spa-Cloud (letzte Abfragen ok). Offline nach mehreren Fehlversuchen — oder wenn Cloud/Konto nicht erreichbar ist.",
+    "no": "Online betyr at Homey når spaet via M-Spa-skyen. Offline etter flere feilede spørringer — eller hvis sky/konto er utilgjengelig.",
+    "sv": "Online betyder att Homey når spat via M-Spa-molnet (senaste förfrågningarna lyckades). Offline efter flera misslyckade försök — eller om moln/konto inte går att nå."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}
