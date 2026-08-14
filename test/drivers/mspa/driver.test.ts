@@ -194,4 +194,45 @@ describe('MspaDriver Pairing Flow', () => {
       expect(mockFlowCards.actions.set_temperature.registerRunListener).toHaveBeenCalled();
     });
   });
+
+  describe('Temperature conditions', () => {
+    const runCondition = async (id: string, device: any, temperature: number) => {
+      await driver.onInit();
+      const listener = mockFlowCards.conditions[id].registerRunListener.mock.calls[0][0];
+      return listener({ device, temperature });
+    };
+
+    const fakeDevice = (measure: number | null, target: number | null) => ({
+      getCapabilityValue: (cap: string) =>
+        cap === 'measure_temperature' ? measure : target,
+    });
+
+    it('temperature_above compares the measured water temperature (strictly)', async () => {
+      // Target 38 but water only 24 — must be false (regression: PR used target)
+      expect(await runCondition('temperature_above', fakeDevice(24, 38), 30)).toBe(false);
+      expect(await runCondition('temperature_above', fakeDevice(31, 20), 30)).toBe(true);
+      // Strict: exactly at the threshold is not "above"
+      expect(await runCondition('temperature_above', fakeDevice(30, 30), 30)).toBe(false);
+    });
+
+    it('temperature_below compares the measured water temperature (strictly)', async () => {
+      expect(await runCondition('temperature_below', fakeDevice(29, 38), 30)).toBe(true);
+      // Target low but water still warm — must be false
+      expect(await runCondition('temperature_below', fakeDevice(36, 20), 30)).toBe(false);
+      expect(await runCondition('temperature_below', fakeDevice(30, 30), 30)).toBe(false);
+    });
+
+    it('temperature_equals compares the target temperature in 0.5°C steps', async () => {
+      expect(await runCondition('temperature_equals', fakeDevice(24, 37), 37)).toBe(true);
+      expect(await runCondition('temperature_equals', fakeDevice(24, 37.2), 37)).toBe(true);
+      expect(await runCondition('temperature_equals', fakeDevice(24, 37.4), 37)).toBe(false);
+      expect(await runCondition('temperature_equals', fakeDevice(37, 38), 37)).toBe(false);
+    });
+
+    it('returns false when capability values are missing', async () => {
+      expect(await runCondition('temperature_above', fakeDevice(null, 38), 30)).toBe(false);
+      expect(await runCondition('temperature_below', fakeDevice(null, 20), 30)).toBe(false);
+      expect(await runCondition('temperature_equals', fakeDevice(24, null), 37)).toBe(false);
+    });
+  });
 });

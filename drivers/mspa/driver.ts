@@ -73,27 +73,33 @@ export default class MspaDriver extends Homey.Driver {
         return true;
       });
 
-    // Solltemperatur (target_temperature), nicht gemessene Wassertemperatur
+    // Measured water temperature (measure_temperature), strict comparison
     this.homey.flow.getConditionCard('temperature_above')
       .registerRunListener(async (args) => {
-        const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
+        const raw = args.device.getCapabilityValue('measure_temperature');
+        if (raw === null || raw === undefined) return false;
+        const currentTemp = Number(raw);
         const threshold = Number(args.temperature);
-        if (!Number.isFinite(setTemp) || !Number.isFinite(threshold)) return false;
-        return setTemp > threshold;
+        if (!Number.isFinite(currentTemp) || !Number.isFinite(threshold)) return false;
+        return currentTemp > threshold;
       });
 
     this.homey.flow.getConditionCard('temperature_below')
       .registerRunListener(async (args) => {
-        const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
+        const raw = args.device.getCapabilityValue('measure_temperature');
+        if (raw === null || raw === undefined) return false;
+        const currentTemp = Number(raw);
         const threshold = Number(args.temperature);
-        if (!Number.isFinite(setTemp) || !Number.isFinite(threshold)) return false;
-        return setTemp < threshold;
+        if (!Number.isFinite(currentTemp) || !Number.isFinite(threshold)) return false;
+        return currentTemp < threshold;
       });
 
-    // Exakte Solltemperatur (0,5°C-Raster)
+    // Exact target temperature (0.5°C steps)
     this.homey.flow.getConditionCard('temperature_equals')
       .registerRunListener(async (args) => {
-        const setTemp = Number(args.device.getCapabilityValue('target_temperature'));
+        const raw = args.device.getCapabilityValue('target_temperature');
+        if (raw === null || raw === undefined) return false;
+        const setTemp = Number(raw);
         const want = Number(args.temperature);
         if (!Number.isFinite(setTemp) || !Number.isFinite(want)) return false;
         return roundHalf(setTemp) === roundHalf(want);

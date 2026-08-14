@@ -1,18 +1,21 @@
 {
   "title": {
-    "en": "The target temperature is !{{above|not above}} …",
-    "de": "Die Solltemperatur liegt !{{über|nicht über}} …",
-    "no": "Måltemperaturen er !{{over|ikke over}} …"
+    "en": "The water temperature is !{{above|not above}} …",
+    "de": "Die Wassertemperatur liegt !{{über|nicht über}} …",
+    "no": "Vanntemperaturen er !{{over|ikke over}} …",
+    "sv": "Vattentemperaturen är !{{över|inte över}} …"
   },
   "titleFormatted": {
-    "en": "The target temperature is !{{above|not above}} [[temperature]]°C",
-    "de": "Die Solltemperatur liegt !{{über|nicht über}} [[temperature]]°C",
-    "no": "Måltemperaturen er !{{over|ikke over}} [[temperature]]°C"
+    "en": "The water temperature is !{{above|not above}} [[temperature]]°C",
+    "de": "Die Wassertemperatur liegt !{{über|nicht über}} [[temperature]]°C",
+    "no": "Vanntemperaturen er !{{over|ikke over}} [[temperature]]°C",
+    "sv": "Vattentemperaturen är !{{över|inte över}} [[temperature]]°C"
   },
   "hint": {
-    "en": "Uses the set target temperature, not measured water temperature.",
-    "de": "Nutzt die eingestellte Solltemperatur, nicht die gemessene Wassertemperatur.",
-    "no": "Bruker innstilt måltemperatur, ikke målt vanntemperatur."
+    "en": "Compares the measured water temperature (strictly greater than).",
+    "de": "Vergleicht die gemessene Wassertemperatur (strikt größer als).",
+    "no": "Sammenligner målt vanntemperatur (strengt større enn).",
+    "sv": "Jämför den uppmätta vattentemperaturen (strikt större än)."
   },
   "args": [
     {
@@ -24,11 +27,12 @@
       "name": "temperature",
       "type": "number",
       "placeholder": {
-        "en": "Target temperature",
-        "de": "Solltemperatur",
-        "no": "Måltemperatur"
+        "en": "Water temperature",
+        "de": "Wassertemperatur",
+        "no": "Vanntemperatur",
+        "sv": "Vattentemperatur"
       },
-      "min": 20,
+      "min": 0,
       "max": 42,
       "step": 0.5
     }
