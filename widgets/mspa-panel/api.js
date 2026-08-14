@@ -64,7 +64,7 @@ function readStatus(device) {
     target_temperature: get('target_temperature'),
     mspa_heater: !!get('mspa_heater', false),
     mspa_filter: !!get('mspa_filter', false),
-    // null only if we refuse control; Düse is always offered on the panel widget
+    // null only if we refuse control; jets are always offered on the panel widget
     mspa_jets: has('mspa_jets') ? !!get('mspa_jets', false) : false,
     mspa_ozone: has('mspa_ozone') ? !!get('mspa_ozone', false) : null,
     mspa_uvc: has('mspa_uvc') ? !!get('mspa_uvc', false) : null,
@@ -72,7 +72,7 @@ function readStatus(device) {
     heater_active: has('heater_active') ? !!get('heater_active', false) : !!get('mspa_heater', false),
     filter_active: has('filter_active') ? !!get('filter_active', false) : !!get('mspa_filter', false),
     features: {
-      // Always show Düse (physical panel); capability is force-added on first toggle
+      // Always show jets (physical panel); capability is re-added on first toggle for unknown models
       jets: true,
       ozone: has('mspa_ozone'),
       uvc: has('mspa_uvc'),

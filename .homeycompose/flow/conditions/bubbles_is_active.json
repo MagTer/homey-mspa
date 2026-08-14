@@ -2,17 +2,20 @@
   "title": {
     "en": "Bubbles are !{{active|not active}}",
     "de": "Blubber ist !{{aktiv|nicht aktiv}}",
-    "no": "Bobler er !{{aktive|ikke aktive}}"
+    "no": "Bobler er !{{aktive|ikke aktive}}",
+    "sv": "Bubblorna är !{{aktiva|inte aktiva}}"
   },
   "titleFormatted": {
     "en": "Bubbles are !{{active|not active}}",
     "de": "Blubber ist !{{aktiv|nicht aktiv}}",
-    "no": "Bobler er !{{aktive|ikke aktive}}"
+    "no": "Bobler er !{{aktive|ikke aktive}}",
+    "sv": "Bubblorna är !{{aktiva|inte aktiva}}"
   },
   "hint": {
     "en": "True when bubble level is 1–3. False if no bubbles or off.",
     "de": "Wahr bei Blasenstufe 1–3. Falsch ohne Blubber oder bei aus.",
-    "no": "Sann ved boblenivå 1–3. Usann uten bobler eller av."
+    "no": "Sann ved boblenivå 1–3. Usann uten bobler eller av.",
+    "sv": "Sant när bubbelnivån är 1–3. Falskt om inga bubblor eller avstängt."
   },
   "args": [
     {

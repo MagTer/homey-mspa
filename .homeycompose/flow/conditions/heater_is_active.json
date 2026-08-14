@@ -2,12 +2,14 @@
   "title": {
     "en": "The heater is !{{active|not active}}",
     "de": "Die Heizung ist !{{aktiv|nicht aktiv}}",
-    "no": "Varmeren er !{{aktiv|ikke aktiv}}"
+    "no": "Varmeren er !{{aktiv|ikke aktiv}}",
+    "sv": "Värmaren är !{{aktiv|inte aktiv}}"
   },
   "titleFormatted": {
     "en": "The heater is !{{active|not active}}",
     "de": "Die Heizung ist !{{aktiv|nicht aktiv}}",
-    "no": "Varmeren er !{{aktiv|ikke aktiv}}"
+    "no": "Varmeren er !{{aktiv|ikke aktiv}}",
+    "sv": "Värmaren är !{{aktiv|inte aktiv}}"
   },
   "args": [
     {

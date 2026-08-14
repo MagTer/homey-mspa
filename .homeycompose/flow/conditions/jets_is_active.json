@@ -2,17 +2,20 @@
   "title": {
     "en": "The jets are !{{active|not active}}",
     "de": "Die Düsen sind !{{aktiv|nicht aktiv}}",
-    "no": "Dysene er !{{aktive|ikke aktive}}"
+    "no": "Dysene er !{{aktive|ikke aktive}}",
+    "sv": "Jetsen är !{{aktiva|inte aktiva}}"
   },
   "titleFormatted": {
     "en": "The jets are !{{active|not active}}",
     "de": "Die Düsen sind !{{aktiv|nicht aktiv}}",
-    "no": "Dysene er !{{aktive|ikke aktive}}"
+    "no": "Dysene er !{{aktive|ikke aktive}}",
+    "sv": "Jetsen är !{{aktiva|inte aktiva}}"
   },
   "hint": {
     "en": "False if this spa model has no jets or jets are off.",
     "de": "Falsch, wenn das Modell keine Düsen hat oder die Düsen aus sind.",
-    "no": "Usann hvis modellen ikke har dyser eller dysene er av."
+    "no": "Usann hvis modellen ikke har dyser eller dysene er av.",
+    "sv": "Falskt om den här spamodellen saknar jets eller jetsen är avstängda."
   },
   "args": [
     {

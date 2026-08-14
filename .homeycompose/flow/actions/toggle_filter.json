@@ -2,11 +2,13 @@
   "title": {
     "en": "Set filter state",
     "no": "Sett filter-tilstand",
+    "sv": "Ställ in filtertillstånd",
     "de": "Filter schalten"
   },
   "titleFormatted": {
     "en": "Turn filter [[state]]",
     "no": "Slå filter [[state]]",
+    "sv": "Slå [[state]] filtret",
     "de": "Filter [[state]] schalten"
   },
   "args": [
@@ -24,6 +26,7 @@
           "title": {
             "en": "on",
             "no": "på",
+            "sv": "på",
             "de": "ein"
           }
         },
@@ -32,6 +35,7 @@
           "title": {
             "en": "off",
             "no": "av",
+            "sv": "av",
             "de": "aus"
           }
         }

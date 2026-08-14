@@ -2,17 +2,20 @@
   "title": {
     "en": "The target temperature is !{{exactly|not exactly}} …",
     "de": "Die Solltemperatur ist !{{genau|nicht genau}} …",
-    "no": "Måltemperaturen er !{{nøyaktig|ikke nøyaktig}} …"
+    "no": "Måltemperaturen er !{{nøyaktig|ikke nøyaktig}} …",
+    "sv": "Måltemperaturen är !{{exakt|inte exakt}} …"
   },
   "titleFormatted": {
     "en": "The target temperature is !{{exactly|not exactly}} [[temperature]]°C",
     "de": "Die Solltemperatur ist !{{genau|nicht genau}} [[temperature]]°C",
-    "no": "Måltemperaturen er !{{nøyaktig|ikke nøyaktig}} [[temperature]]°C"
+    "no": "Måltemperaturen er !{{nøyaktig|ikke nøyaktig}} [[temperature]]°C",
+    "sv": "Måltemperaturen är !{{exakt|inte exakt}} [[temperature]]°C"
   },
   "hint": {
     "en": "Compares the set target temperature (not measured water temperature), rounded to 0.5°C.",
     "de": "Vergleicht die eingestellte Solltemperatur (nicht die gemessene Wassertemperatur), gerundet auf 0,5°C.",
-    "no": "Sammenligner innstilt måltemperatur (ikke målt vanntemperatur), avrundet til 0,5°C."
+    "no": "Sammenligner innstilt måltemperatur (ikke målt vanntemperatur), avrundet til 0,5°C.",
+    "sv": "Jämför den inställda måltemperaturen (inte den uppmätta vattentemperaturen), avrundad till 0,5°C."
   },
   "args": [
     {
@@ -26,7 +29,8 @@
       "placeholder": {
         "en": "Target temperature",
         "de": "Solltemperatur",
-        "no": "Måltemperatur"
+        "no": "Måltemperatur",
+        "sv": "Måltemperatur"
       },
       "min": 20,
       "max": 42,

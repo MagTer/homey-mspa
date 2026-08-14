@@ -1,7 +1,9 @@
 {
   "name": {
     "en": "M-Spa Panel",
-    "de": "M-Spa Bedienfeld"
+    "de": "M-Spa Bedienfeld",
+    "no": "M-Spa-panel",
+    "sv": "M-Spa-panel"
   },
   "height": 420,
   "transparent": true,

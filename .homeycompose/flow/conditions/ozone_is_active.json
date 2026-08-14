@@ -2,17 +2,20 @@
   "title": {
     "en": "Ozone is !{{active|not active}}",
     "de": "Ozon ist !{{aktiv|nicht aktiv}}",
-    "no": "Ozon er !{{aktivt|ikke aktivt}}"
+    "no": "Ozon er !{{aktivt|ikke aktivt}}",
+    "sv": "Ozonet är !{{aktivt|inte aktivt}}"
   },
   "titleFormatted": {
     "en": "Ozone is !{{active|not active}}",
     "de": "Ozon ist !{{aktiv|nicht aktiv}}",
-    "no": "Ozon er !{{aktivt|ikke aktivt}}"
+    "no": "Ozon er !{{aktivt|ikke aktivt}}",
+    "sv": "Ozonet är !{{aktivt|inte aktivt}}"
   },
   "hint": {
     "en": "False if this spa model has no ozone or ozone is off.",
     "de": "Falsch, wenn das Modell kein Ozon hat oder Ozon aus ist.",
-    "no": "Usann hvis modellen ikke har ozon eller ozon er av."
+    "no": "Usann hvis modellen ikke har ozon eller ozon er av.",
+    "sv": "Falskt om den här spamodellen saknar ozon eller ozonet är avstängt."
   },
   "args": [
     {

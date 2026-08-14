@@ -3,6 +3,7 @@
   "title": {
     "en": "Heating",
     "no": "Varmer opp",
+    "sv": "Värmer",
     "de": "Heizt"
   },
   "getable": true,

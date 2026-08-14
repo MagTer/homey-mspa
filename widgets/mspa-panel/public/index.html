@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
@@ -317,7 +317,7 @@
           <div class="temps">
             <div class="temp-main" id="temp-main">--.-<span class="unit">°C</span></div>
             <div class="temp-target" id="temp-target">
-              <span class="label">Soll</span><span id="temp-target-val">--.-</span>°C
+              <span class="label" data-i18n="target">Set</span><span id="temp-target-val">--.-</span>°C
             </div>
           </div>
           <div class="status-icons">
@@ -346,7 +346,7 @@
           <div class="icon">
             <svg viewBox="0 0 32 32"><path d="M8 8h16v4c0 3-2 5-4 6v8h-8v-8c-2-1-4-3-4-6V8z"/><path d="M12 12h8M12 16h8"/></svg>
           </div>
-          <div class="lbl" data-i18n="filter">Umwälzpumpe</div>
+          <div class="lbl" data-i18n="filter">Filter pump</div>
         </button>
 
         <button type="button" class="key" data-action="toggle" data-cap="mspa_ozone" id="key-ozone">
@@ -370,7 +370,7 @@
               <circle cx="24" cy="24" r="2.5"/>
             </svg>
           </div>
-          <div class="lbl" data-i18n="bubbles">Blubber</div>
+          <div class="lbl" data-i18n="bubbles">Bubbles</div>
         </button>
 
         <button type="button" class="key" data-action="toggle" data-cap="mspa_uvc" id="key-uvc">
@@ -383,7 +383,7 @@
           <div class="lbl" data-i18n="uvc">UV</div>
         </button>
 
-        <button type="button" class="key disabled" id="key-timer" title="Timer nicht in der App">
+        <button type="button" class="key disabled" id="key-timer" title="Timer not available in the app">
           <div class="icon">
             <svg viewBox="0 0 32 32">
               <circle cx="16" cy="17" r="9"/>
@@ -405,7 +405,7 @@
               <path d="M5 16c4-2 7-2 11 0-4 2-7 2-11 0z"/>
             </svg>
           </div>
-          <div class="lbl" data-i18n="jets">Düse</div>
+          <div class="lbl" data-i18n="jets">Jets</div>
         </button>
         <div></div>
       </div>
@@ -470,6 +470,36 @@
         sent: 'Sent…',
         err: 'Error',
       },
+      sv: {
+        heater: 'Värmare',
+        filter: 'Filterpump',
+        ozone: 'Ozon',
+        bubbles: 'Bubblor',
+        uvc: 'UV',
+        timer: 'Timer värmare',
+        jets: 'Jets',
+        target: 'Mål',
+        pick: 'Öppna widgetinställningarna och välj ditt M-Spa.',
+        none: 'Inget M-Spa-spabad hittades.',
+        offline: 'Offline',
+        sent: 'Skickat…',
+        err: 'Fel',
+      },
+      no: {
+        heater: 'Varme',
+        filter: 'Filterpumpe',
+        ozone: 'Ozon',
+        bubbles: 'Bobler',
+        uvc: 'UV',
+        timer: 'Timer varme',
+        jets: 'Jets',
+        target: 'Sett',
+        pick: 'Åpne widget-innstillingene og velg din M-Spa.',
+        none: 'Ingen M-Spa-enhet funnet.',
+        offline: 'Frakoblet',
+        sent: 'Sendt…',
+        err: 'Feil',
+      },
     };
 
     function lang() {
@@ -477,8 +507,11 @@
         const l = (HomeyRef && HomeyRef.__ && HomeyRef.__('settings.title')) || '';
         // Fallback: browser / Homey locale heuristics
       } catch (e) { /* ignore */ }
-      const nav = (navigator.language || 'de').toLowerCase();
-      return nav.startsWith('de') ? 'de' : 'en';
+      const nav = (navigator.language || 'en').toLowerCase();
+      if (nav.startsWith('de')) return 'de';
+      if (nav.startsWith('sv')) return 'sv';
+      if (nav.startsWith('no') || nav.startsWith('nb') || nav.startsWith('nn')) return 'no';
+      return 'en';
     }
 
     function t(key) {
@@ -537,7 +570,7 @@
       const f = status.features || {};
       setKeyState('key-ozone', status.mspa_ozone, !f.ozone);
       setKeyState('key-uvc', status.mspa_uvc, !f.uvc);
-      // Düse always enabled (matches physical panel; API force-adds cap if profile stripped it)
+      // Jets always enabled (matches physical panel; API force-adds cap if profile stripped it)
       setKeyState('key-jets', !!status.mspa_jets, false);
 
       const bubbleKey = document.getElementById('key-bubble');

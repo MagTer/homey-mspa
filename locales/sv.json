@@ -1,0 +1,18 @@
+{
+  "settings.title": "M-Spa-konto",
+  "settings.email": "E-post",
+  "settings.email_placeholder": "email@exempel.se",
+  "settings.password": "Lösenord",
+  "settings.region": "API-region",
+  "settings.region_row": "Resten av världen (ROW)",
+  "settings.region_us": "USA (US)",
+  "settings.region_ch": "Kina (CH)",
+  "settings.save": "Verifiera och spara",
+  "settings.connecting": "Ansluter till Homey…",
+  "settings.connected": "Ansluten till Homey",
+  "settings.need_credentials": "Ange både e-post och lösenord.",
+  "settings.verifying": "Verifierar inloggningsuppgifter…",
+  "settings.saved": "Inloggningsuppgifterna verifierades och sparades.",
+  "settings.failed": "Verifieringen misslyckades",
+  "settings.error": "Fel"
+}

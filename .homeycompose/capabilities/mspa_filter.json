@@ -3,6 +3,7 @@
   "title": {
     "en": "Filter",
     "no": "Filter",
+    "sv": "Filter",
     "de": "Filter"
   },
   "getable": true,

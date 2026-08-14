@@ -2,11 +2,13 @@
   "title": {
     "en": "Set UVC state",
     "no": "Sett UVC-tilstand",
+    "sv": "Ställ in UVC-tillstånd",
     "de": "UVC schalten"
   },
   "titleFormatted": {
     "en": "Turn UVC [[state]]",
     "no": "Slå UVC [[state]]",
+    "sv": "Slå [[state]] UVC",
     "de": "UVC [[state]] schalten"
   },
   "args": [
@@ -24,6 +26,7 @@
           "title": {
             "en": "on",
             "no": "på",
+            "sv": "på",
             "de": "ein"
           }
         },
@@ -32,6 +35,7 @@
           "title": {
             "en": "off",
             "no": "av",
+            "sv": "av",
             "de": "aus"
           }
         }

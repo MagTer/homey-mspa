@@ -2,11 +2,13 @@
   "title": {
     "en": "Set heater state",
     "no": "Sett varmer-tilstand",
+    "sv": "Ställ in värmartillstånd",
     "de": "Heizung schalten"
   },
   "titleFormatted": {
     "en": "Turn heater [[state]]",
     "no": "Slå varmer [[state]]",
+    "sv": "Slå [[state]] värmaren",
     "de": "Heizung [[state]] schalten"
   },
   "args": [
@@ -24,6 +26,7 @@
           "title": {
             "en": "on",
             "no": "på",
+            "sv": "på",
             "de": "ein"
           }
         },
@@ -32,6 +35,7 @@
           "title": {
             "en": "off",
             "no": "av",
+            "sv": "av",
             "de": "aus"
           }
         }
