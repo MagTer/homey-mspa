@@ -8,7 +8,7 @@ Control and monitor your M-Spa hot tub directly from Homey.
 - **Full Control**: Set target temperature (20–42 °C), toggle heater, filter, and bubbles.
 - **Advanced Features**: Control Jets, Ozone sanitizer, and UVC (on supported models).
 - **Dashboard Widget**: An interactive "M-Spa Panel" widget styled after the physical control panel.
-- **Flow Support**: Triggers ("Temperature changed", "Fault detected", device online/offline), actions for every control, and conditions for heater, filter, bubbles, jets, ozone, UVC and temperature.
+- **Flow Support**: Triggers ("Temperature changed", "Fault detected", device online/offline), actions for every control, and conditions for heater, filter, bubbles, jets, ozone, UVC, temperature and reachability.
 - **Status Visibility**: Get clear fault descriptions and connection status.
 - **Languages**: English, German, Norwegian and Swedish.
 

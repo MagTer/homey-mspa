@@ -13,6 +13,7 @@ const { mockClientClass, mockFlowCards } = vi.hoisted(() => {
       ozone_is_active: { registerRunListener: vi.fn() },
       uvc_is_active: { registerRunListener: vi.fn() },
       bubbles_is_active: { registerRunListener: vi.fn() },
+      device_is_online: { registerRunListener: vi.fn() },
     },
     actions: {
       set_temperature: { registerRunListener: vi.fn() },
@@ -191,7 +192,17 @@ describe('MspaDriver Pairing Flow', () => {
       expect(mockFlowCards.conditions.ozone_is_active.registerRunListener).toHaveBeenCalled();
       expect(mockFlowCards.conditions.uvc_is_active.registerRunListener).toHaveBeenCalled();
       expect(mockFlowCards.conditions.bubbles_is_active.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.conditions.device_is_online.registerRunListener).toHaveBeenCalled();
       expect(mockFlowCards.actions.set_temperature.registerRunListener).toHaveBeenCalled();
+    });
+
+    it('device_is_online follows Homey availability', async () => {
+      await driver.onInit();
+      const listener = mockFlowCards.conditions.device_is_online.registerRunListener.mock.calls[0][0];
+
+      await expect(listener({ device: { getAvailable: () => true } })).resolves.toBe(true);
+      await expect(listener({ device: { getAvailable: () => false } })).resolves.toBe(false);
+      await expect(listener({ device: {} })).resolves.toBe(false);
     });
   });
 

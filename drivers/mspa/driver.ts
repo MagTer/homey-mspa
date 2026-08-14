@@ -16,6 +16,15 @@ export default class MspaDriver extends Homey.Driver {
     this.log('MspaDriver has been initialized');
 
     // Register Flow Conditions (return strict boolean so invert works)
+    this.homey.flow.getConditionCard('device_is_online')
+      .registerRunListener(async (args) => {
+        const device = args.device;
+        if (typeof device.getAvailable === 'function') {
+          return device.getAvailable() === true;
+        }
+        return false;
+      });
+
     this.homey.flow.getConditionCard('heater_is_active')
       .registerRunListener(async (args) => {
         return isOn(args.device.getCapabilityValue('heater_active'))
