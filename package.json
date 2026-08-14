@@ -1,6 +1,6 @@
 {
   "name": "com.mspa.hot-tub",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Control your M-Spa hot tub",
   "type": "module",
   "main": "app.ts",

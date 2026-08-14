@@ -16,5 +16,8 @@
     "de": "Neu: interaktives Dashboard-Widget „M-Spa Bedienfeld“, Flow-Bedingungen für Blubber, Düsen, Ozon und UVC, eine Bedingung für die genaue Solltemperatur und umkehrbare Bedingungen. Wassertemperatur-Bedingungen vergleichen jetzt strikt über/unter. Fix: Optionale Funktionen werden durch ein falsches Modellprofil nicht mehr dauerhaft entfernt. Neue Sprachen: Deutsch und Schwedisch, Norwegisch vervollständigt.",
     "no": "Nytt: interaktiv dashbord-widget «M-Spa-panel», Flow-betingelser for bobler, dyser, ozon og UVC, en betingelse for nøyaktig måltemperatur, og betingelser som kan inverteres. Vanntemperatur-betingelser sammenligner nå strengt over/under. Fiks: valgfrie funksjoner fjernes ikke lenger permanent av feil modellprofil. Nye språk: tysk og svensk, norsk fullført.",
     "sv": "Nytt: interaktiv instrumentpanels-widget ”M-Spa-panel”, Flow-villkor för bubblor, jets, ozon och UVC, ett villkor för exakt måltemperatur, och villkor som kan inverteras. Vattentemperaturvillkoren jämför nu strikt över/under. Fix: valfria funktioner tas inte längre bort permanent av fel modellprofil. Nya språk: tyska och svenska, norska kompletterat."
+  },
+  "1.0.5": {
+    "en": "Flow: new condition for whether the spa is reachable. Use it to hold off actions while the spa is offline."
   }
 }
