@@ -52,6 +52,11 @@ npx homey app run
 
 To build and install on your own Homey Pro: `npm run install:homey`.
 
+### Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: everything in the repository
+is written in English, user-facing text lives in the locale files, and existing
+Flow cards must not change meaning.
+
 ### API Client
 The API communication is centralized in `app.ts` to ensure global rate limiting (400ms throttle) and single authentication state.
 
