@@ -1114,4 +1114,49 @@ describe('MspaDevice', () => {
       expect(device.hasCapability('mspa_uvc')).toBe(true);
     });
   });
+
+  describe('ensureOptionalCapability', () => {
+    it('should NOT force-add a capability a known profile denies (Delight, no ozone)', async () => {
+      (device as any)._store = {
+        product_id: 'test-product-id',
+        product_series: 'Delight',
+        product_model: 'D-01',
+      };
+      delete (device as any)._capabilities['mspa_ozone'];
+
+      const result = await device.ensureOptionalCapability('mspa_ozone');
+
+      expect(result).toBe(false);
+      expect(device.hasCapability('mspa_ozone')).toBe(false);
+      expect((device as any)._capabilityListeners?.['mspa_ozone']).toBeUndefined();
+    });
+
+    it('should force-add a capability when the model is unknown (Standard profile)', async () => {
+      (device as any)._store = {
+        product_id: 'test-product-id',
+        product_series: 'Unknown-123',
+      };
+      delete (device as any)._capabilities['mspa_ozone'];
+
+      const result = await device.ensureOptionalCapability('mspa_ozone');
+
+      expect(result).toBe(true);
+      expect(device.hasCapability('mspa_ozone')).toBe(true);
+      expect((device as any)._capabilityListeners['mspa_ozone']).toBeTypeOf('function');
+    });
+
+    it('should re-add a capability a known profile supports (Frame UVC)', async () => {
+      (device as any)._store = {
+        product_id: 'test-product-id',
+        product_series: 'Frame',
+        product_model: 'F-01',
+      };
+      delete (device as any)._capabilities['mspa_uvc'];
+
+      const result = await device.ensureOptionalCapability('mspa_uvc');
+
+      expect(result).toBe(true);
+      expect(device.hasCapability('mspa_uvc')).toBe(true);
+    });
+  });
 });

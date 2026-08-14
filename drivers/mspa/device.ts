@@ -142,8 +142,9 @@ export default class MspaDevice extends Homey.Device {
 
   /**
    * Ensure optional cap exists for Flow THEN/AND.
-   * If the product profile was unknown (Standard) or wrongly stripped the cap,
-   * force-add so the user can still control ozone/UVC/jets.
+   * Only force-adds when the model is unknown (Standard profile) — a known
+   * profile that denies a feature (e.g. Comfort without ozone) is trusted,
+   * since the API would reject commands for hardware that does not exist.
    */
   async ensureOptionalCapability(capabilityId: string): Promise<boolean> {
     if (this.hasCapability(capabilityId)) return true;
@@ -154,8 +155,16 @@ export default class MspaDevice extends Homey.Device {
       return true;
     }
 
-    // Last resort: force-add (profile denied or empty store) so Flow cards work.
-    // Comfort/Delight that truly lack ozone still get the cap; API may reject.
+    const store = this.getStore();
+    const profile = getProfile(store.product_series ?? '', store.product_model ?? '');
+    if (profile.name !== 'Standard') {
+      this.log(
+        `Not force-adding ${capabilityId}: profile ${profile.name} does not support it`,
+      );
+      return false;
+    }
+
+    // Unknown model: force-add so Flow cards still work (profile may be wrong).
     const forceable = ['mspa_ozone', 'mspa_uvc', 'mspa_jets', 'bubble_level'];
     if (forceable.includes(capabilityId)) {
       this.log(
