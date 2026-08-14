@@ -29,4 +29,12 @@ coverage/
 .cache/
 tmp/
 .homeybuild/
-app.json
+# Nur generiertes Root-app.json (Compose-Quelle bleibt versioniert)
+/app.json
+
+# ── Copiis / Arctic (lokal, Syncthing, nicht GitHub) ──
+/PROJEKT-REGELN.md
+/AGENTS.md
+*.bak*
+.env.json
+/setup/grok/

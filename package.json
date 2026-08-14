@@ -1,12 +1,13 @@
 {
   "name": "com.mspa.hot-tub",
-  "version": "1.0.0",
+  "version": "1.0.13",
   "description": "Control your M-Spa hot tub",
   "type": "module",
   "main": "app.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "install:homey": "./install-local-homey.sh"
   },
   "devDependencies": {
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",

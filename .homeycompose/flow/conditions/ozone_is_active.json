@@ -1,0 +1,24 @@
+{
+  "title": {
+    "en": "Ozone is !{{active|not active}}",
+    "de": "Ozon ist !{{aktiv|nicht aktiv}}",
+    "no": "Ozon er !{{aktivt|ikke aktivt}}"
+  },
+  "titleFormatted": {
+    "en": "Ozone is !{{active|not active}}",
+    "de": "Ozon ist !{{aktiv|nicht aktiv}}",
+    "no": "Ozon er !{{aktivt|ikke aktivt}}"
+  },
+  "hint": {
+    "en": "False if this spa model has no ozone or ozone is off.",
+    "de": "Falsch, wenn das Modell kein Ozon hat oder Ozon aus ist.",
+    "no": "Usann hvis modellen ikke har ozon eller ozon er av."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}

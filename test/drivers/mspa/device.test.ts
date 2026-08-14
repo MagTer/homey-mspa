@@ -96,8 +96,15 @@ vi.mock('homey', () => {
     setData(key, value) { return Promise.resolve(); }
     setCapabilityValue(capabilityId, value) { this._capabilities[capabilityId] = value; return Promise.resolve(); }
     getCapabilityValue(capabilityId) { return this._capabilities[capabilityId]; }
-    hasCapability(capabilityId) { return this._capabilities[capabilityId] !== undefined; }
+    // Homey: capability can exist with value false — do not use value !== undefined
+    hasCapability(capabilityId) { return Object.prototype.hasOwnProperty.call(this._capabilities, capabilityId); }
     async removeCapability(capabilityId) { delete this._capabilities[capabilityId]; return Promise.resolve(); }
+    async addCapability(capabilityId) {
+      if (!Object.prototype.hasOwnProperty.call(this._capabilities, capabilityId)) {
+        this._capabilities[capabilityId] = capabilityId === 'bubble_level' ? 'off' : false;
+      }
+      return Promise.resolve();
+    }
     registerCapabilityListener(capabilityId, handler) {
       if (!this._capabilityListeners) this._capabilityListeners = {};
       this._capabilityListeners[capabilityId] = handler;
@@ -675,11 +682,11 @@ describe('MspaDevice', () => {
 
   describe('Other capability listeners', () => {
     it('should send correct commands for jets, ozone, and uvc', async () => {
-      // Setup
+      // Muse: jets + ozone (no UVC)
       await device.onInit();
 
-      // Test jets
       const jetsListener = (device as any)._capabilityListeners['mspa_jets'];
+      expect(jetsListener).toBeTypeOf('function');
       await jetsListener(true);
       expect(mockSendCommand).toHaveBeenCalledWith(
         'test-device-id',
@@ -687,19 +694,43 @@ describe('MspaDevice', () => {
         { jet_state: 1 }
       );
 
-      // Test ozone
       mockSendCommand.mockClear();
       const ozoneListener = (device as any)._capabilityListeners['mspa_ozone'];
+      expect(ozoneListener).toBeTypeOf('function');
       await ozoneListener(false);
       expect(mockSendCommand).toHaveBeenCalledWith(
         'test-device-id',
         'test-product-id',
         { ozone_state: 0 }
       );
+      // Muse has no UVC — listener must not be registered
+      expect((device as any)._capabilityListeners['mspa_uvc']).toBeUndefined();
 
-      // Test uvc
+      // Frame: UVC + ozone, no jets
+      const frameDevice = new MspaDevice();
+      (frameDevice as any)._store = {
+        product_id: 'test-product-id',
+        product_series: 'Frame',
+        product_model: 'F-TU062W',
+      };
+      (frameDevice as any)._data = { id: 'test-device-id' };
+      (frameDevice as any)._capabilities = {
+        measure_temperature: 0,
+        target_temperature: 0,
+        mspa_heater: false,
+        mspa_filter: false,
+        mspa_jets: false,
+        mspa_ozone: false,
+        mspa_uvc: false,
+        bubble_level: 'off',
+        heater_active: false,
+        filter_active: false,
+      };
       mockSendCommand.mockClear();
-      const uvcListener = (device as any)._capabilityListeners['mspa_uvc'];
+      await frameDevice.onInit();
+      expect(frameDevice.hasCapability('mspa_uvc')).toBe(true);
+      const uvcListener = (frameDevice as any)._capabilityListeners['mspa_uvc'];
+      expect(uvcListener).toBeTypeOf('function');
       await uvcListener(true);
       expect(mockSendCommand).toHaveBeenCalledWith(
         'test-device-id',
@@ -1069,7 +1100,7 @@ describe('MspaDevice', () => {
         product_id: 'test-product-id',
         product_series: 'Unknown-123',
       };
-      
+
       (device as any)._capabilities['mspa_jets'] = false;
       (device as any)._capabilities['mspa_ozone'] = false;
       (device as any)._capabilities['mspa_uvc'] = false;
@@ -1077,10 +1108,10 @@ describe('MspaDevice', () => {
       // Act
       await device.onInit();
 
-      // Assert: Default profile (no jets/ozone/uvc)
-      expect(device.hasCapability('mspa_jets')).toBe(false);
-      expect(device.hasCapability('mspa_ozone')).toBe(false);
-      expect(device.hasCapability('mspa_uvc')).toBe(false);
+      // Assert: Standard never strips existing caps; adds ozone+UVC when profile says yes
+      expect(device.hasCapability('mspa_jets')).toBe(true); // present at pair, not stripped
+      expect(device.hasCapability('mspa_ozone')).toBe(true);
+      expect(device.hasCapability('mspa_uvc')).toBe(true);
     });
   });
 });

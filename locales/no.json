@@ -1,23 +1,18 @@
 {
-  "M-Spa Hot Tub": {
-    "en": "M-Spa Hot Tub",
-    "no": "M-Spa Boblebad"
-  },
-  "capabilities": {
-    "bubble_level": {
-      "name": "Boblenivå",
-      "values": {
-        "off": "Av",
-        "1": "Nivå 1",
-        "2": "Nivå 2",
-        "3": "Nivå 3"
-      }
-    },
-    "heater_active": {
-      "name": "Varmer aktiv"
-    },
-    "filter_active": {
-      "name": "Filter aktivt"
-    }
-  }
+  "settings.title": "M-Spa-konto",
+  "settings.email": "E-post",
+  "settings.email_placeholder": "epost@eksempel.no",
+  "settings.password": "Passord",
+  "settings.region": "API-region",
+  "settings.region_row": "Resten av verden (ROW)",
+  "settings.region_us": "USA (US)",
+  "settings.region_ch": "Kina (CH)",
+  "settings.save": "Verifiser og lagre",
+  "settings.connecting": "Kobler til Homey…",
+  "settings.connected": "Koblet til Homey",
+  "settings.need_credentials": "Skriv inn både e-post og passord.",
+  "settings.verifying": "Verifiserer påloggingsdata…",
+  "settings.saved": "Påloggingsdata verifisert og lagret.",
+  "settings.failed": "Verifisering mislyktes",
+  "settings.error": "Feil"
 }

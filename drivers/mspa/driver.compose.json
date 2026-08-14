@@ -1,6 +1,7 @@
 {
   "name": {
-    "en": "M-Spa Device"
+    "en": "M-Spa Device",
+    "de": "M-Spa Gerät"
   },
   "class": "sensor",
   "platforms": [
@@ -22,13 +23,15 @@
     "measure_temperature": {
       "title": {
         "en": "Water Temperature",
-        "no": "Vanntemperatur"
+        "no": "Vanntemperatur",
+        "de": "Wassertemperatur"
       }
     },
     "target_temperature": {
       "title": {
         "en": "Target Temperature",
-        "no": "Måltemperatur"
+        "no": "Måltemperatur",
+        "de": "Solltemperatur"
       },
       "min": 20,
       "max": 42,

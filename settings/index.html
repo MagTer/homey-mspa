@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
   <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; color: #333; }
     .field { margin-bottom: 20px; }
     label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
-    input, select { 
-      width: 100%; padding: 12px; border: 1px solid #ddd; 
+    input, select {
+      width: 100%; padding: 12px; border: 1px solid #ddd;
       border-radius: 8px; box-sizing: border-box; font-size: 16px;
       background-color: #f9f9f9;
     }
@@ -26,53 +27,74 @@
 </head>
 <body>
   <div class="field">
-    <label>M-Spa Account Email</label>
-    <input type="text" id="email" placeholder="email@example.com" />
+    <label id="label-email">Email</label>
+    <input type="text" id="email" placeholder="email@example.com" autocomplete="username" />
   </div>
   <div class="field">
-    <label>Password</label>
-    <input type="password" id="password" placeholder="••••••••" />
+    <label id="label-password">Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
   </div>
   <div class="field">
-    <label>API Region</label>
+    <label id="label-region">API Region</label>
     <select id="region">
-      <option value="row">Rest of World (ROW)</option>
-      <option value="us">United States (US)</option>
-      <option value="ch">China (CH)</option>
+      <option value="row" id="opt-row">Rest of World (ROW)</option>
+      <option value="us" id="opt-us">United States (US)</option>
+      <option value="ch" id="opt-ch">China (CH)</option>
     </select>
   </div>
   <button class="button" id="save-btn">Verify and Save</button>
-  
+
   <div id="status-msg">Connecting to Homey...</div>
 
   <script type="text/javascript">
+    function t(homey, key, fallback) {
+      try {
+        var s = homey.__(key);
+        if (s && s !== key) return s;
+      } catch (e) { /* ignore */ }
+      return fallback;
+    }
+
+    function applyI18n(homey) {
+      document.getElementById('label-email').textContent = t(homey, 'settings.email', 'Email');
+      document.getElementById('label-password').textContent = t(homey, 'settings.password', 'Password');
+      document.getElementById('label-region').textContent = t(homey, 'settings.region', 'API region');
+      document.getElementById('email').placeholder = t(homey, 'settings.email_placeholder', 'email@example.com');
+      document.getElementById('opt-row').textContent = t(homey, 'settings.region_row', 'Rest of World (ROW)');
+      document.getElementById('opt-us').textContent = t(homey, 'settings.region_us', 'United States (US)');
+      document.getElementById('opt-ch').textContent = t(homey, 'settings.region_ch', 'China (CH)');
+      document.getElementById('save-btn').textContent = t(homey, 'settings.save', 'Verify and save');
+      try {
+        homey.setTitle(t(homey, 'settings.title', 'M-Spa account'));
+      } catch (e) { /* optional */ }
+    }
+
     function onHomeyReady(homey) {
       const statusMsg = document.getElementById('status-msg');
       const saveBtn = document.getElementById('save-btn');
-      statusMsg.innerText = 'Connected to Homey';
 
-      // Get current values
-      homey.get('email', (err, val) => { if(val) document.getElementById('email').value = val; });
-      homey.get('password', (err, val) => { if(val) document.getElementById('password').value = val; });
-      homey.get('region', (err, val) => { if(val) document.getElementById('region').value = val; });
+      applyI18n(homey);
+      statusMsg.innerText = t(homey, 'settings.connected', 'Connected to Homey');
 
-      saveBtn.onclick = async function() {
+      homey.get('email', (err, val) => { if (val) document.getElementById('email').value = val; });
+      homey.get('password', (err, val) => { if (val) document.getElementById('password').value = val; });
+      homey.get('region', (err, val) => { if (val) document.getElementById('region').value = val; });
+
+      saveBtn.onclick = async function () {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const region = document.getElementById('region').value;
 
         if (!email || !password) {
-          homey.alert('Please enter both email and password.');
+          homey.alert(t(homey, 'settings.need_credentials', 'Please enter both email and password.'));
           return;
         }
 
-        // Update UI to show we are working
         saveBtn.disabled = true;
-        statusMsg.innerText = 'Verifying credentials...';
+        statusMsg.innerText = t(homey, 'settings.verifying', 'Verifying credentials…');
         statusMsg.className = '';
 
         try {
-          // Call the backend API to validate credentials
           const result = await homey.api('POST', '/validate-credentials', {
             email,
             password,
@@ -80,19 +102,19 @@
           });
 
           if (result && result.success) {
-            // Save to settings only after verification
             homey.set('email', email);
             homey.set('password', password);
             homey.set('region', region);
-            
-            statusMsg.innerText = 'Success! Credentials verified and saved.';
+
+            statusMsg.innerText = t(homey, 'settings.saved', 'Credentials verified and saved.');
             statusMsg.className = 'success';
-            homey.alert('Success! Your M-Spa account is verified and saved.');
+            homey.alert(t(homey, 'settings.saved', 'Credentials verified and saved.'));
           }
         } catch (err) {
-          statusMsg.innerText = 'Error: ' + (err.message || err);
+          const msg = (err && err.message) ? err.message : String(err);
+          statusMsg.innerText = t(homey, 'settings.error', 'Error') + ': ' + msg;
           statusMsg.className = 'error';
-          homey.alert('Failed to verify credentials: ' + (err.message || err));
+          homey.alert(t(homey, 'settings.failed', 'Verification failed') + ': ' + msg);
         } finally {
           saveBtn.disabled = false;
         }
@@ -104,3 +126,4 @@
   </script>
 </body>
 </html>
+

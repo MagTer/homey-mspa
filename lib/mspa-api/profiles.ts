@@ -110,12 +110,17 @@ export const MODEL_PREFIX_PROFILES: Array<[string, MspaProfile]> = [
   }],
 ];
 
-/** Default when nothing matches — bubble-only (the universal subset). */
+/**
+ * Default when series/model is unknown or empty.
+ * Prefer **keeping** ozone/UVC so Flow cards work; Comfort/Delight still strip
+ * them when the series is explicitly recognized without those features.
+ * (Previously bubble-only DEFAULT removed mspa_ozone → invalid_capability forever.)
+ */
 export const DEFAULT_PROFILE: MspaProfile = {
   name: 'Standard',
   hasJets: false,
-  hasOzone: false,
-  hasUvc: false,
+  hasOzone: true,
+  hasUvc: true,
   hasBubbles: true,
 };
 

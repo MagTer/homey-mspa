@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Heating",
-    "no": "Varmer opp"
+    "no": "Varmer opp",
+    "de": "Heizt"
   },
   "getable": true,
   "setable": false,

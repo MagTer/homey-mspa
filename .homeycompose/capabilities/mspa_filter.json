@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Filter",
-    "no": "Filter"
+    "no": "Filter",
+    "de": "Filter"
   },
   "getable": true,
   "setable": true,

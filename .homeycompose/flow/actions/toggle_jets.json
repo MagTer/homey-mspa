@@ -1,11 +1,13 @@
 {
   "title": {
     "en": "Set jets state",
-    "no": "Sett dyser-tilstand"
+    "no": "Sett dyser-tilstand",
+    "de": "Jets schalten"
   },
   "titleFormatted": {
     "en": "Turn jets [[state]]",
-    "no": "Slå dyser [[state]]"
+    "no": "Slå dyser [[state]]",
+    "de": "Jets [[state]] schalten"
   },
   "args": [
     {
@@ -21,14 +23,16 @@
           "id": "on",
           "title": {
             "en": "on",
-            "no": "på"
+            "no": "på",
+            "de": "ein"
           }
         },
         {
           "id": "off",
           "title": {
             "en": "off",
-            "no": "av"
+            "no": "av",
+            "de": "aus"
           }
         }
       ]

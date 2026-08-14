@@ -8,6 +8,11 @@ const { mockClientClass, mockFlowCards } = vi.hoisted(() => {
       filter_is_active: { registerRunListener: vi.fn() },
       temperature_above: { registerRunListener: vi.fn() },
       temperature_below: { registerRunListener: vi.fn() },
+      temperature_equals: { registerRunListener: vi.fn() },
+      jets_is_active: { registerRunListener: vi.fn() },
+      ozone_is_active: { registerRunListener: vi.fn() },
+      uvc_is_active: { registerRunListener: vi.fn() },
+      bubbles_is_active: { registerRunListener: vi.fn() },
     },
     actions: {
       set_temperature: { registerRunListener: vi.fn() },
@@ -181,6 +186,11 @@ describe('MspaDriver Pairing Flow', () => {
       await driver.onInit();
 
       expect(mockFlowCards.conditions.heater_is_active.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.conditions.temperature_equals.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.conditions.jets_is_active.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.conditions.ozone_is_active.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.conditions.uvc_is_active.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.conditions.bubbles_is_active.registerRunListener).toHaveBeenCalled();
       expect(mockFlowCards.actions.set_temperature.registerRunListener).toHaveBeenCalled();
     });
   });
