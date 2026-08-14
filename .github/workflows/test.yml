@@ -38,3 +38,9 @@ jobs:
       - uses: athombv/github-action-homey-app-validate@master
         with:
           level: publish
+
+      # Compose rewrites app.json in place during the step above. If the result
+      # differs from what is committed, the tracked file is stale — regenerate
+      # it with `npx homey app build` and commit the result.
+      - name: Check app.json is in sync with .homeycompose
+        run: git diff --exit-code -- app.json

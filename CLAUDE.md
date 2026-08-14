@@ -41,9 +41,15 @@ There is no linter and no formatter. Match the surrounding style.
 
 ## Things that will bite you
 
-**`app.json` is generated.** Edit `.homeycompose/**` and
-`drivers/mspa/driver.compose.json`. The root `app.json` is gitignored and the
-Homey CLI composes it on build. Never hand-edit it, and never commit it.
+**`app.json` is generated but tracked.** Edit `.homeycompose/**` and
+`drivers/mspa/driver.compose.json` — never `app.json` itself. Compose merges
+them into the root `app.json` on every build.
+
+The root file is committed anyway, because the Homey CLI treats it as the entry
+point and refuses to do anything without it — including composing it. A clone
+without `app.json` cannot even run `homey app build`. After changing anything
+under `.homeycompose/`, run `npx homey app build` and commit the regenerated
+`app.json` alongside your change; CI fails if the two drift apart.
 
 **Flow card IDs are a public contract.** Users have saved Flows referencing
 them. Changing what an existing card *means* — the capability it reads, the

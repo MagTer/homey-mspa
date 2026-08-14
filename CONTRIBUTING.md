@@ -88,8 +88,14 @@ are driven by the model profile in `lib/mspa-api/profiles.ts`.
 npm ci
 npx tsc --noEmit      # must be clean
 npm test              # must be green
+npx homey app build   # regenerates app.json from .homeycompose
 npx homey app validate --level publish
 ```
+
+If you changed anything under `.homeycompose/` or `driver.compose.json`, commit
+the regenerated `app.json` with it. That file is generated, but it is tracked —
+the Homey CLI will not run without it — and CI fails if it has drifted from the
+Compose sources. Never edit `app.json` by hand.
 
 Add tests for behavior you change. The Flow condition semantics in
 `test/drivers/mspa/driver.test.ts` and the capability rules in
