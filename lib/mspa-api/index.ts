@@ -4,7 +4,7 @@
  */
 
 export { MspaApiClient } from './client.js';
-export { parseShadow } from './shadow.js';
+export { isActivelyHeating, parseShadow } from './shadow.js';
 export { MspaThrottle } from './throttle.js';
 
 export * from './types.js';
