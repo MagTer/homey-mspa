@@ -30,6 +30,8 @@ export interface RawShadowData {
   water_temperature: number;
   temperature_setting: number;
   heater_state: number;
+  /** 0 off, 1 idle, 2 preheat, 3 heating, 4 standby — missing on some firmware */
+  heat_state?: number;
   filter_state: number;
   bubble_state: number;
   bubble_level: number;
@@ -44,6 +46,8 @@ export interface ParsedShadow {
   water_temperature: number; // Celsius
   temperature_setting: number; // Celsius
   heater_state: boolean;
+  /** Cloud heat phase; null if the device does not report it */
+  heat_state: number | null;
   filter_state: boolean;
   bubble_state: boolean;
   bubble_level: number; // 0-3

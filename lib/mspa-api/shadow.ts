@@ -17,11 +17,26 @@ function asOn(v: unknown): boolean {
   return false;
 }
 
+/** Cloud heat_state 2 = preheat, 3 = actively heating. */
+export function isActivelyHeating(heatState: number | null | undefined): boolean {
+  return heatState === 2 || heatState === 3;
+}
+
+function parseHeatState(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    const n = Number(raw);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
 export function parseShadow(raw: RawShadowData): ParsedShadow {
   return {
     water_temperature: raw.water_temperature / 2, // Divide by 2 to get Celsius
     temperature_setting: raw.temperature_setting / 2, // Divide by 2 to get Celsius
     heater_state: asOn(raw.heater_state),
+    heat_state: parseHeatState(raw.heat_state),
     filter_state: asOn(raw.filter_state),
     bubble_state: asOn(raw.bubble_state),
     bubble_level: raw.bubble_level, // 0-3, pass as-is

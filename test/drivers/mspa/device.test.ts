@@ -252,6 +252,40 @@ describe('MspaDevice', () => {
       expect(device.isAvailable()).toBe(true);
     });
 
+    it('should set heater_active only while the heater is actually heating', async () => {
+      mockGetThingShadow.mockResolvedValue({
+        water_temperature: 80,
+        temperature_setting: 80,
+        heater_state: 1,
+        heat_state: 4,
+        filter_state: 1,
+        bubble_state: 0,
+        bubble_level: 0,
+        uvc_state: 0,
+        ozone_state: 0,
+        jet_state: 0,
+        fault: '',
+      });
+      mockParseShadow.mockReturnValue({
+        water_temperature: 40,
+        temperature_setting: 40,
+        heater_state: true,
+        heat_state: 4,
+        filter_state: true,
+        bubble_state: false,
+        bubble_level: 0,
+        uvc_state: false,
+        ozone_state: false,
+        jet_state: false,
+        fault: '',
+      });
+
+      await device.onInit();
+
+      expect(device.getCapabilityValue('mspa_heater')).toBe(true);
+      expect(device.getCapabilityValue('heater_active')).toBe(false);
+    });
+
     it('should mark device unavailable if app settings are missing', async () => {
       // Setup: Missing app settings
       mockHomeyDevice.app.getApiClient.mockReturnValue(null);

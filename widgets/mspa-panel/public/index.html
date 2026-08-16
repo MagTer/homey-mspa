@@ -15,6 +15,7 @@
       --key-off: #3a4550;
       --danger: #e57373;
       --ok: #81c784;
+      --heat: #e53935;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -244,6 +245,19 @@
     }
 
     .key.on .lvl { opacity: 1; }
+
+    /* Heater is actually heating (cloud heat_state 2/3), matching the red panel key */
+    .key.heating {
+      color: var(--heat);
+      border-color: rgba(229, 57, 53, 0.75);
+      box-shadow:
+        0 0 12px rgba(229, 57, 53, 0.35),
+        inset 0 0 14px rgba(229, 57, 53, 0.12);
+    }
+
+    .key.heating .lbl {
+      color: #ef9a9a;
+    }
 
     .key.missing,
     .key.disabled {
@@ -565,6 +579,10 @@
       document.getElementById('wifi').classList.toggle('on', !!status.available);
 
       setKeyState('key-heater', status.mspa_heater, false);
+      const heaterKey = document.getElementById('key-heater');
+      if (heaterKey) {
+        heaterKey.classList.toggle('heating', !!status.mspa_heater && !!status.heater_active);
+      }
       setKeyState('key-filter', status.mspa_filter, false);
 
       const f = status.features || {};

@@ -1,6 +1,6 @@
 import Homey from 'homey';
 import { MspaApiClient } from '../../lib/mspa-api/client.js';
-import { parseShadow } from '../../lib/mspa-api/shadow.js';
+import { isActivelyHeating, parseShadow } from '../../lib/mspa-api/shadow.js';
 import type { ParsedShadow } from '../../lib/mspa-api/types.js';
 import { getProfile } from '../../lib/mspa-api/profiles.js';
 import MspaApp from '../../app.js';
@@ -244,7 +244,12 @@ export default class MspaDevice extends Homey.Device {
     write('mspa_jets', !!shadow.jet_state);
     write('mspa_ozone', !!shadow.ozone_state);
     write('mspa_uvc', !!shadow.uvc_state);
-    write('heater_active', !!shadow.heater_state);
+    write(
+      'heater_active',
+      shadow.heat_state != null
+        ? isActivelyHeating(shadow.heat_state)
+        : !!shadow.heater_state,
+    );
     write('filter_active', !!shadow.filter_state);
 
     if (this.hasCapability('bubble_level')) {

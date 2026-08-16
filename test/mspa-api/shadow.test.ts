@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseShadow } from '../../lib/mspa-api/shadow.js';
+import { isActivelyHeating, parseShadow } from '../../lib/mspa-api/shadow.js';
 
 describe('parseShadow', () => {
   it('should correctly parse standard shadow values', () => {
@@ -155,5 +155,28 @@ describe('parseShadow', () => {
     expect(parsed.uvc_state).toBe(true);
     expect(parsed.ozone_state).toBe(false);
     expect(parsed.jet_state).toBe(true);
+  });
+
+  it('should parse heat_state and detect active heating', () => {
+    const raw = {
+      water_temperature: 76,
+      temperature_setting: 80,
+      heater_state: 1,
+      heat_state: 3,
+      filter_state: 1,
+      bubble_state: 0,
+      bubble_level: 0,
+      uvc_state: 0,
+      ozone_state: 0,
+      jet_state: 0,
+      fault: '',
+    };
+
+    expect(parseShadow(raw).heat_state).toBe(3);
+    expect(isActivelyHeating(3)).toBe(true);
+    expect(isActivelyHeating(2)).toBe(true);
+    expect(isActivelyHeating(4)).toBe(false);
+    expect(isActivelyHeating(0)).toBe(false);
+    expect(isActivelyHeating(null)).toBe(false);
   });
 });
