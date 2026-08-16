@@ -97,6 +97,17 @@ export default {
     if (!device) {
       return { error: 'no_device', message: 'No M-Spa device selected' };
     }
+    // Widget polls every 5s but used to only read cached capabilities.
+    // Idle cloud poll is 15 min — pool-side button presses never showed until then.
+    // Refresh the shadow when stale so heater/filter/bubbles/jets/ozone/UV/temp
+    // update within ~8–15 s while the widget is visible.
+    if (typeof device.refreshIfStale === 'function') {
+      try {
+        await device.refreshIfStale(8000);
+      } catch {
+        // Keep last known capability values
+      }
+    }
     return readStatus(device);
   },
 

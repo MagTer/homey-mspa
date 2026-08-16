@@ -434,6 +434,52 @@ describe('MspaDevice', () => {
       expect(device.getCapabilityValue('bubble_level')).toBe('off');
     });
 
+    it('should treat bubble_state off as off even if bubble_level is leftover', async () => {
+      mockParseShadow.mockReturnValue({
+        water_temperature: 38,
+        temperature_setting: 40,
+        heater_state: true,
+        filter_state: true,
+        bubble_state: false,
+        bubble_level: 2,
+        uvc_state: false,
+        ozone_state: false,
+        jet_state: false,
+        fault: '',
+      });
+      mockGetThingShadow.mockResolvedValue({});
+
+      await device.onInit();
+
+      expect(device.getCapabilityValue('bubble_level')).toBe('off');
+    });
+
+    it('should skip a second cloud fetch when refreshIfStale is still fresh', async () => {
+      mockParseShadow.mockReturnValue({
+        water_temperature: 38,
+        temperature_setting: 40,
+        heater_state: true,
+        filter_state: true,
+        bubble_state: false,
+        bubble_level: 0,
+        uvc_state: false,
+        ozone_state: false,
+        jet_state: false,
+        fault: '',
+      });
+      mockGetThingShadow.mockResolvedValue({});
+
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+
+      await device.refreshIfStale(8000);
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+
+      (device as any).lastPollAt = Date.now() - 20_000;
+      await device.refreshIfStale(8000);
+      expect(mockGetThingShadow).toHaveBeenCalledTimes(1);
+    });
+
     it('should surface faults without marking the device unavailable', async () => {
       // A reported fault should not block command control; the user needs to
       // stay able to issue commands (e.g., turn off the heater) to recover.

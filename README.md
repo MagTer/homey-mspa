@@ -57,7 +57,7 @@ added.
 
 - **"Please configure your account"**: This means you haven't completed Step 1 (Setup Instructions) yet.
 - **Device Unavailable**: Check if the hot tub is powered on and connected to your WiFi.
-- **API Polling**: To respect M-Spa's cloud limits, status updates occur every 15 minutes during idle periods, but increase to every 5 seconds for 30 seconds after you send a command.
+- **API Polling**: Idle cloud poll every 15 minutes. After a Homey command, rapid poll every 5 seconds for 30 seconds. **Dashboard widget:** while visible it asks Homey for status every 5 seconds; Homey re-fetches the M-Spa shadow if the last fetch is older than 8 seconds — so buttons used **on the spa** (bubbles, heater, pump, ozone, UV, jets, temperature) update the widget in about 8–15 seconds instead of waiting for the idle poll.
 
 ## Developer Information
 

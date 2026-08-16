@@ -13,6 +13,9 @@ export default class MspaDevice extends Homey.Device {
   private previousShadow: ParsedShadow | null = null;
   private wasAvailable: boolean = true;
   private triggerCards: Record<string, any> = {};
+  /** Last successful cloud shadow fetch (ms). Widget uses this to avoid 15‑min stale UI. */
+  private lastPollAt: number = 0;
+  private pollInFlight: Promise<void> | null = null;
 
   constructor(...args: any[]) {
     super(...args);
@@ -253,7 +256,10 @@ export default class MspaDevice extends Homey.Device {
     write('filter_active', !!shadow.filter_state);
 
     if (this.hasCapability('bubble_level')) {
-      const bubbleValue = shadow.bubble_level === 0 ? 'off' : String(shadow.bubble_level);
+      // Off at the pool often leaves bubble_level > 0 while bubble_state is 0.
+      const level = Number(shadow.bubble_level);
+      const n = Number.isFinite(level) ? level : 0;
+      const bubbleValue = !shadow.bubble_state || n <= 0 ? 'off' : String(n);
       write('bubble_level', bubbleValue);
     }
 
@@ -529,9 +535,32 @@ export default class MspaDevice extends Homey.Device {
   }
 
   /**
+   * Fetch cloud shadow if the last successful poll is older than [maxAgeMs].
+   * Used by the dashboard widget so pool-side changes (bubbles, heater, …)
+   * show up in seconds, not only on the 15‑minute idle poll.
+   * Concurrent callers share one in-flight request.
+   */
+  async refreshIfStale(maxAgeMs: number = 8000): Promise<void> {
+    if (this.lastPollAt > 0 && Date.now() - this.lastPollAt < maxAgeMs) {
+      return;
+    }
+    return this.performPoll();
+  }
+
+  /**
    * Perform a single poll cycle
    */
   async performPoll() {
+    if (this.pollInFlight) {
+      return this.pollInFlight;
+    }
+    this.pollInFlight = this.pollOnce().finally(() => {
+      this.pollInFlight = null;
+    });
+    return this.pollInFlight;
+  }
+
+  private async pollOnce() {
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
     const apiClient = this.getApiClient();
@@ -545,6 +574,7 @@ export default class MspaDevice extends Homey.Device {
     try {
       const shadow = await apiClient.getThingShadow(deviceId, product_id);
       this.consecutiveFailures = 0;
+      this.lastPollAt = Date.now();
       
       if (!this.wasAvailable) {
         this.log('Device recovered, firing device_online trigger');
