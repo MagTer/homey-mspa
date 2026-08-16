@@ -19,5 +19,8 @@
   },
   "1.0.5": {
     "en": "Flow: new condition for whether the spa is reachable. Use it to hold off actions while the spa is offline."
+  },
+  "1.0.6": {
+    "en": "The Heating indicator now shows when the spa is actually heating the water, instead of only that the heater is switched on. Spas whose firmware does not report this keep the previous behaviour. Flows that check the heater are unchanged."
   }
 }
