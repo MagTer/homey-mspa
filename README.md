@@ -57,7 +57,7 @@ added.
 
 - **"Please configure your account"**: This means you haven't completed Step 1 (Setup Instructions) yet.
 - **Device Unavailable**: Check if the hot tub is powered on and connected to your WiFi.
-- **API Polling**: Idle cloud poll every 15 minutes. After a Homey command, rapid poll every 5 seconds for 30 seconds. **Dashboard widget:** while visible it asks Homey for status every 5 seconds; Homey re-fetches the M-Spa shadow if the last fetch is older than 8 seconds — so buttons used **on the spa** (bubbles, heater, pump, ozone, UV, jets, temperature) update the widget in about 8–15 seconds instead of waiting for the idle poll.
+- **API Polling**: Idle cloud poll every 15 minutes. After a Homey command, rapid poll every 5 seconds for 30 seconds. **Dashboard widget:** while the page is visible (`document.hidden`) it asks Homey for status every 5 seconds; Homey re-fetches the M-Spa shadow if the last *attempt* is older than **20 seconds**. Failed fetches back off (20 s → 40 s → 80 s, cap 2 min); after 3 failures the widget stops hitting the cloud until the idle poll succeeds. Backgrounded phones and parked tabs do not poll. Buttons used **on the spa** still update the widget in tens of seconds instead of waiting for the idle poll.
 
 ## Developer Information
 

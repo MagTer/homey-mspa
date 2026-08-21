@@ -476,8 +476,75 @@ describe('MspaDevice', () => {
       expect(mockGetThingShadow).not.toHaveBeenCalled();
 
       (device as any).lastPollAt = Date.now() - 20_000;
+      (device as any).lastAttemptAt = Date.now() - 20_000;
       await device.refreshIfStale(8000);
       expect(mockGetThingShadow).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not hammer the cloud after a failed widget refresh', async () => {
+      mockParseShadow.mockReturnValue({
+        water_temperature: 38,
+        temperature_setting: 40,
+        heater_state: true,
+        filter_state: true,
+        bubble_state: false,
+        bubble_level: 0,
+        uvc_state: false,
+        ozone_state: false,
+        jet_state: false,
+        fault: '',
+      });
+      mockGetThingShadow.mockResolvedValue({});
+      await device.onInit();
+      mockGetThingShadow.mockReset();
+      mockGetThingShadow.mockRejectedValue(new Error('cloud down'));
+
+      (device as any).lastAttemptAt = 0;
+      (device as any).lastPollAt = 0;
+      await device.refreshIfStale(20_000);
+      expect(mockGetThingShadow).toHaveBeenCalledTimes(1);
+
+      mockGetThingShadow.mockClear();
+      await device.refreshIfStale(20_000);
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+    });
+
+    it('should skip widget cloud refresh after 3 failures (idle poll still runs)', async () => {
+      mockParseShadow.mockReturnValue({
+        water_temperature: 38,
+        temperature_setting: 40,
+        heater_state: true,
+        filter_state: true,
+        bubble_state: false,
+        bubble_level: 0,
+        uvc_state: false,
+        ozone_state: false,
+        jet_state: false,
+        fault: '',
+      });
+      mockGetThingShadow.mockResolvedValue({});
+      await device.onInit();
+      mockGetThingShadow.mockReset();
+      mockGetThingShadow.mockRejectedValue(new Error('cloud down'));
+
+      (device as any).consecutiveFailures = 3;
+      (device as any).lastAttemptAt = 0;
+      await device.refreshIfStale(20_000);
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+
+      await device.performPoll();
+      expect(mockGetThingShadow).toHaveBeenCalledTimes(1);
+    });
+
+    it('should double the widget gap after consecutive failures', () => {
+      (device as any).consecutiveFailures = 0;
+      expect(device.widgetRefreshGapMs(20_000)).toBe(20_000);
+      (device as any).consecutiveFailures = 1;
+      expect(device.widgetRefreshGapMs(20_000)).toBe(40_000);
+      (device as any).consecutiveFailures = 2;
+      expect(device.widgetRefreshGapMs(20_000)).toBe(80_000);
+      (device as any).consecutiveFailures = 4;
+      expect(device.widgetRefreshGapMs(20_000)).toBe(120_000);
     });
 
     it('should surface faults without marking the device unavailable', async () => {

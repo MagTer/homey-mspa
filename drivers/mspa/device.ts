@@ -15,7 +15,12 @@ export default class MspaDevice extends Homey.Device {
   private triggerCards: Record<string, any> = {};
   /** Last successful cloud shadow fetch (ms). Widget uses this to avoid 15‑min stale UI. */
   private lastPollAt: number = 0;
+  /** Last cloud fetch attempt (ms), success or fail — stops error storms. */
+  private lastAttemptAt: number = 0;
   private pollInFlight: Promise<void> | null = null;
+  /** Widget-visible shadow refresh (healthy). Rapid poll after commands stays 5 s. */
+  static readonly WIDGET_SHADOW_MAX_AGE_MS = 20_000;
+  static readonly WIDGET_FAIL_BACKOFF_CAP_MS = 120_000;
 
   constructor(...args: any[]) {
     super(...args);
@@ -535,16 +540,29 @@ export default class MspaDevice extends Homey.Device {
   }
 
   /**
-   * Fetch cloud shadow if the last successful poll is older than [maxAgeMs].
-   * Used by the dashboard widget so pool-side changes (bubbles, heater, …)
-   * show up in seconds, not only on the 15‑minute idle poll.
-   * Concurrent callers share one in-flight request.
+   * Fetch cloud shadow if the last *attempt* is older than the current gap.
+   * Healthy widget: [maxAgeMs] (20 s). Failures back off; after 3 failures
+   * the widget stops hitting the cloud (idle 15 min poll still runs).
+   * Rapid poll after Homey commands uses [performPoll] and is unchanged.
    */
-  async refreshIfStale(maxAgeMs: number = 8000): Promise<void> {
-    if (this.lastPollAt > 0 && Date.now() - this.lastPollAt < maxAgeMs) {
+  async refreshIfStale(
+    maxAgeMs: number = MspaDevice.WIDGET_SHADOW_MAX_AGE_MS,
+  ): Promise<void> {
+    if (this.consecutiveFailures >= 3) {
+      return;
+    }
+    const gap = this.widgetRefreshGapMs(maxAgeMs);
+    if (this.lastAttemptAt > 0 && Date.now() - this.lastAttemptAt < gap) {
       return;
     }
     return this.performPoll();
+  }
+
+  /** Healthy: maxAgeMs. After n failures: maxAge × 2^n, capped. */
+  widgetRefreshGapMs(maxAgeMs: number): number {
+    if (this.consecutiveFailures <= 0) return maxAgeMs;
+    const exp = maxAgeMs * 2 ** this.consecutiveFailures;
+    return Math.min(exp, MspaDevice.WIDGET_FAIL_BACKOFF_CAP_MS);
   }
 
   /**
@@ -570,6 +588,8 @@ export default class MspaDevice extends Homey.Device {
       this.setUnavailable('Please configure your M-Spa account in app settings.');
       return;
     }
+
+    this.lastAttemptAt = Date.now();
 
     try {
       const shadow = await apiClient.getThingShadow(deviceId, product_id);
