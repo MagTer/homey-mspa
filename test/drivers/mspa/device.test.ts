@@ -454,6 +454,10 @@ describe('MspaDevice', () => {
       expect(device.getCapabilityValue('bubble_level')).toBe('off');
     });
 
+    it('uses a 30 s healthy widget shadow window (no published M-Spa rate limit)', () => {
+      expect(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS).toBe(30_000);
+    });
+
     it('should skip a second cloud fetch when refreshIfStale is still fresh', async () => {
       mockParseShadow.mockReturnValue({
         water_temperature: 38,
@@ -501,11 +505,11 @@ describe('MspaDevice', () => {
 
       (device as any).lastAttemptAt = 0;
       (device as any).lastPollAt = 0;
-      await device.refreshIfStale(20_000);
+      await device.refreshIfStale();
       expect(mockGetThingShadow).toHaveBeenCalledTimes(1);
 
       mockGetThingShadow.mockClear();
-      await device.refreshIfStale(20_000);
+      await device.refreshIfStale();
       expect(mockGetThingShadow).not.toHaveBeenCalled();
     });
 
@@ -529,7 +533,7 @@ describe('MspaDevice', () => {
 
       (device as any).consecutiveFailures = 3;
       (device as any).lastAttemptAt = 0;
-      await device.refreshIfStale(20_000);
+      await device.refreshIfStale();
       expect(mockGetThingShadow).not.toHaveBeenCalled();
 
       await device.performPoll();
@@ -538,13 +542,13 @@ describe('MspaDevice', () => {
 
     it('should double the widget gap after consecutive failures', () => {
       (device as any).consecutiveFailures = 0;
-      expect(device.widgetRefreshGapMs(20_000)).toBe(20_000);
+      expect(device.widgetRefreshGapMs(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS)).toBe(30_000);
       (device as any).consecutiveFailures = 1;
-      expect(device.widgetRefreshGapMs(20_000)).toBe(40_000);
+      expect(device.widgetRefreshGapMs(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS)).toBe(60_000);
       (device as any).consecutiveFailures = 2;
-      expect(device.widgetRefreshGapMs(20_000)).toBe(80_000);
+      expect(device.widgetRefreshGapMs(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS)).toBe(120_000);
       (device as any).consecutiveFailures = 4;
-      expect(device.widgetRefreshGapMs(20_000)).toBe(120_000);
+      expect(device.widgetRefreshGapMs(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS)).toBe(120_000);
     });
 
     it('should surface faults without marking the device unavailable', async () => {

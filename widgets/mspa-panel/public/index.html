@@ -445,7 +445,7 @@
   </div>
 
   <script type="text/javascript">
-    // UI tick; cloud shadow is refreshed by getStatus when older than ~20s.
+    // UI tick; cloud shadow is refreshed by getStatus when older than ~30s.
     const SYNC_MS = 5000;
     const WIDGET_HEIGHT = 420;
 
@@ -735,8 +735,13 @@
 
       document.addEventListener('visibilitychange', () => {
         if (!HomeyRef || !deviceId) return;
-        if (document.hidden) stopSyncLoop();
-        else startSyncLoop(HomeyRef);
+        if (document.hidden) {
+          stopSyncLoop();
+          return;
+        }
+        // One fetch immediately on focus, then the 5 s tick (not waiting out
+        // the interval — otherwise returning to the dashboard looks stale).
+        startSyncLoop(HomeyRef);
       });
     }
 
