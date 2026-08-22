@@ -16,8 +16,9 @@ agent.
 
 ```bash
 npm ci                      # install
-npx tsc --noEmit            # typecheck — must be clean
-npm test                    # vitest, 91 tests
+npm run typecheck           # both tsconfigs — must be clean
+npm test                    # vitest
+npm run coverage            # per-file coverage
 npx homey app validate --level publish
 npx homey app run           # run against a paired Homey
 npm run install:homey       # build + homey app install
@@ -37,7 +38,7 @@ There is no linter and no formatter. Match the surrounding style.
 | `.homeycompose/` | App manifest, capabilities and Flow cards — the real source |
 | `locales/` | Settings-page strings for `homey.__` |
 | `widgets/mspa-panel/` | Dashboard widget: `api.js` backend, `public/index.html` frontend |
-| `test/` | Vitest suites; `__mocks__/homey.ts` stands in for the SDK |
+| `test/` | Vitest suites; the Homey SDK stub is the `vi.mock` in `test/setup.ts` — the root `__mocks__/homey.ts` is not wired to anything |
 
 ## Things that will bite you
 
@@ -83,19 +84,42 @@ Do not bump them in a change.
 through `locales/`, the Compose `title`/`hint` objects, or the widget's `LABELS`
 table — never hardcoded.
 
-## Test coverage is uneven
+## What the suite can and cannot see
 
-`npm test` being green is weaker evidence than it looks:
+Run `npm run coverage` for the current numbers; do not trust a figure written
+down here. Everything that ships is now typechecked and covered, including the
+plain JavaScript: `npm run typecheck` runs `tsconfig.json` for the TypeScript
+and `tsconfig.check.json` for `api.js` and `widgets/**/*.js`.
 
-- `tsconfig.json` includes only `lib/`, `app.ts` and `drivers/`. The widget
-  (`widgets/mspa-panel/api.js` and its HTML) and the root `api.js` are plain
-  JavaScript and are not typechecked or covered by any test.
-- `test/mspa-api/signature.test.ts` reimplements the MD5 signing scheme with
-  `crypto` instead of importing it from `client.ts`. It asserts its own copy, so
-  it cannot catch a regression in the real signing code.
+The widget's inline script is exercised by loading `index.html` into jsdom
+(`test/widgets/mspa-panel-ui.test.ts`), so changes there are testable without
+restructuring how the widget loads — which is deliberate, since a change to
+widget loading cannot be verified without a real Homey.
 
-If you change the widget or the request signing, verify by other means and say
-so rather than leaning on the suite.
+Green still does not cover:
+
+- The real M-Spa cloud. Every test mocks `fetch`. Shadow field semantics —
+  `heat_state`, leftover `bubble_level`, anything firmware-dependent — are
+  assumptions until observed on a device.
+- How the widget renders on a physical dashboard. jsdom asserts the DOM, not
+  layout, and not whether Homey serves the page as expected.
+- Homey SDK behaviour. `test/setup.ts` is a stub; `invalid_capability`, timer
+  semantics and pairing all behave for real only on hardware.
+
+For those, install the app (`npm run install:homey`) and say that is how you
+verified it.
+
+Two traps worth knowing before writing tests here:
+
+- vitest's fake timers patch `globalThis`, not the jsdom window. An interval
+  assertion using `vi.advanceTimersByTime` against widget code measures nothing
+  and passes anyway. The widget tests install their own control over the page's
+  `setInterval`.
+- `const` at the top level of a classic script is not a window property, so
+  `LABELS` has to be reached with `win.eval('LABELS')`.
+
+Check that a new test can fail before trusting it: break the code it covers and
+confirm it goes red.
 
 ## Polling
 

@@ -19,5 +19,14 @@ export default defineConfig({
     environment: 'node',
     include: ['test/**/*.test.ts'],
     setupFiles: ['./test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      // Everything that ships, including the plain JavaScript the build
+      // tsconfig does not compile. The inline script in the widget's
+      // index.html is exercised by test/widgets/mspa-panel-ui.test.ts but
+      // cannot be instrumented here, so it is not listed.
+      include: ['lib/**', 'drivers/**', 'app.ts', 'api.js', 'widgets/**/api.js'],
+    },
   },
 });
