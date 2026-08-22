@@ -13,6 +13,26 @@ export default class MspaDevice extends Homey.Device {
   private previousShadow: ParsedShadow | null = null;
   private wasAvailable: boolean = true;
   private triggerCards: Record<string, any> = {};
+  /** Last successful cloud shadow fetch (ms). Widget uses this to avoid 15‑min stale UI. */
+  private lastPollAt: number = 0;
+  /** Last cloud fetch attempt (ms), success or fail — stops error storms. */
+  private lastAttemptAt: number = 0;
+  private pollInFlight: Promise<void> | null = null;
+  /**
+   * Widget-visible shadow refresh (healthy). Rapid poll after Homey/widget
+   * commands stays 5 s × 30 s.
+   *
+   * No published M-Spa rate limit is known (client only spaces calls by
+   * 0.4 s and backs off on HTTP 429). Chosen 30 s while the dashboard is
+   * actually on screen: ~120 fetches/hour, ~2 880/day if left open 24 h
+   * (idle baseline 4/hour, 96/day). Pool-side button presses lag up to 30 s;
+   * Homey/widget commands are unchanged. Failures back off
+   * (30 → 60 → 120 s, cap 2 min); after 3 failures widget refresh stops and
+   * the 15 min idle poll remains — recovery can take up to 15 min, same as
+   * today, by choice (PR #16).
+   */
+  static readonly WIDGET_SHADOW_MAX_AGE_MS = 30_000;
+  static readonly WIDGET_FAIL_BACKOFF_CAP_MS = 120_000;
 
   constructor(...args: any[]) {
     super(...args);
@@ -253,7 +273,10 @@ export default class MspaDevice extends Homey.Device {
     write('filter_active', !!shadow.filter_state);
 
     if (this.hasCapability('bubble_level')) {
-      const bubbleValue = shadow.bubble_level === 0 ? 'off' : String(shadow.bubble_level);
+      // Off at the pool often leaves bubble_level > 0 while bubble_state is 0.
+      const level = Number(shadow.bubble_level);
+      const n = Number.isFinite(level) ? level : 0;
+      const bubbleValue = !shadow.bubble_state || n <= 0 ? 'off' : String(n);
       write('bubble_level', bubbleValue);
     }
 
@@ -529,9 +552,45 @@ export default class MspaDevice extends Homey.Device {
   }
 
   /**
+   * Fetch cloud shadow if the last *attempt* is older than the current gap.
+   * Healthy widget: [maxAgeMs] (30 s). Failures back off; after 3 failures
+   * the widget stops hitting the cloud (idle 15 min poll still runs).
+   * Rapid poll after Homey commands uses [performPoll] and is unchanged.
+   */
+  async refreshIfStale(
+    maxAgeMs: number = MspaDevice.WIDGET_SHADOW_MAX_AGE_MS,
+  ): Promise<void> {
+    if (this.consecutiveFailures >= 3) {
+      return;
+    }
+    const gap = this.widgetRefreshGapMs(maxAgeMs);
+    if (this.lastAttemptAt > 0 && Date.now() - this.lastAttemptAt < gap) {
+      return;
+    }
+    return this.performPoll();
+  }
+
+  /** Healthy: maxAgeMs. After n failures: maxAge × 2^n, capped. */
+  widgetRefreshGapMs(maxAgeMs: number): number {
+    if (this.consecutiveFailures <= 0) return maxAgeMs;
+    const exp = maxAgeMs * 2 ** this.consecutiveFailures;
+    return Math.min(exp, MspaDevice.WIDGET_FAIL_BACKOFF_CAP_MS);
+  }
+
+  /**
    * Perform a single poll cycle
    */
   async performPoll() {
+    if (this.pollInFlight) {
+      return this.pollInFlight;
+    }
+    this.pollInFlight = this.pollOnce().finally(() => {
+      this.pollInFlight = null;
+    });
+    return this.pollInFlight;
+  }
+
+  private async pollOnce() {
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
     const apiClient = this.getApiClient();
@@ -542,9 +601,12 @@ export default class MspaDevice extends Homey.Device {
       return;
     }
 
+    this.lastAttemptAt = Date.now();
+
     try {
       const shadow = await apiClient.getThingShadow(deviceId, product_id);
       this.consecutiveFailures = 0;
+      this.lastPollAt = Date.now();
       
       if (!this.wasAvailable) {
         this.log('Device recovered, firing device_online trigger');

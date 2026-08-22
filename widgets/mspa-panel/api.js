@@ -97,6 +97,15 @@ export default {
     if (!device) {
       return { error: 'no_device', message: 'No M-Spa device selected' };
     }
+    // Widget UI ticks every 5s; cloud shadow only if older than ~30s (PR #16).
+    // Idle poll stays 15 min. After 3 cloud failures this is a no-op.
+    if (typeof device.refreshIfStale === 'function') {
+      try {
+        await device.refreshIfStale();
+      } catch {
+        // Keep last known capability values
+      }
+    }
     return readStatus(device);
   },
 
