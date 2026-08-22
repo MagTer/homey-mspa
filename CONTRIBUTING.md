@@ -156,6 +156,16 @@ Hand-written version bumps in a pull request will be asked to be removed.
 Describe your change in the pull request instead; the changelog text is written
 at release time from what actually shipped.
 
+**One version, one note.** Write the entry for the version being cut and nothing
+else — never fold an earlier version's notes into a later one, even when the
+earlier version was pulled from certification and looks like it will never reach
+anyone. The App Store shows the whole chain: the changelog modal on the app page
+lists every version's entry, and `.homeychangelog.json` ships inside the bundle
+with all previous entries intact. Folding produces a visible duplicate, and it
+cannot be undone afterwards — a later release adds an entry, it never removes
+one, and there is no CLI or web action that deletes a published version. Verified
+2026-08-22, after v1.0.8 shipped carrying a repeat of v1.0.7's note.
+
 ## Commit messages
 
 Conventional Commits, in English:
