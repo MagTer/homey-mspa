@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MspaApiClient } from '../../lib/mspa-api/client.js';
+import { APP_ID, APP_SECRET, buildAuthHeaders } from '../../lib/mspa-api/signing.js';
 
 // Mock crypto module to produce deterministic nonces for testing
 vi.mock('crypto', async (importOriginal) => {
@@ -14,10 +15,12 @@ vi.mock('crypto', async (importOriginal) => {
   return {
     ...actualCrypto,
     randomBytes: (len: number) => {
-      // Return deterministic bytes based on nonceCounter
+      // Deterministic but the right *size*: len bytes = 2*len hex characters.
+      // The earlier version emitted len hex chars, i.e. half a nonce, which no
+      // test noticed because none asserted the nonce.
       const hex = '0123456789abcdef';
       let result = '';
-      for (let i = 0; i < len; i++) {
+      for (let i = 0; i < len * 2; i++) {
         result += hex[nonceCounter % 16];
         nonceCounter++;
       }
@@ -44,6 +47,49 @@ describe('MspaApiClient', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('signed headers on the wire', () => {
+    // signature.test.ts pins the scheme against fixed vectors. This asserts the
+    // client actually sends that output rather than assembling headers its own
+    // way — the two together cover signer correctness *and* wiring.
+    async function headersFromNextCall() {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ code: 0, data: { token: 't', email: 'e' } }),
+      });
+      await client.authenticate();
+      return fetchMock.mock.calls[0][1].headers as Record<string, string>;
+    }
+
+    it('sends exactly the header set the signer produces', async () => {
+      const headers = await headersFromNextCall();
+      expect(headers).toEqual(buildAuthHeaders(headers.nonce, headers.ts));
+    });
+
+    it('sends a fresh nonce and a plausible timestamp on each request', async () => {
+      const headers = await headersFromNextCall();
+      expect(headers.nonce).toMatch(/^[0-9a-f]{32}$/);
+      expect(headers.ts).toMatch(/^\d{10}$/);
+      expect(Math.abs(Number(headers.ts) * 1000 - Date.now())).toBeLessThan(5000);
+      expect(headers.appid).toBe(APP_ID);
+      expect(headers.sign).toMatch(/^[A-F0-9]{32}$/);
+    });
+
+    it('never puts the app secret on the wire', async () => {
+      const headers = await headersFromNextCall();
+      const body = fetchMock.mock.calls[0][1].body ?? '';
+      expect(JSON.stringify(headers)).not.toContain(APP_SECRET);
+      expect(String(body)).not.toContain(APP_SECRET);
+    });
+
+    it('carries the token once authenticated', async () => {
+      await headersFromNextCall();
+      fetchMock.mockResolvedValue({ ok: true, json: async () => ({ code: 0, data: [] }) });
+      await client.getDevices();
+      const later = fetchMock.mock.calls[1][1].headers as Record<string, string>;
+      expect(later.authorization).toBe('token t');
+    });
   });
 
   describe('authenticate', () => {
