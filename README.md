@@ -32,8 +32,9 @@ Once your account is configured:
 ## Supported Models
 
 Every model gets water temperature, target temperature, heater and filter. The
-app then matches your series against a profile and adds the optional controls
-that series has:
+app then works out which optional controls your spa has — first from the series
+your spa reports, and if that is missing or unrecognised, from the letter in the
+model code (`C-BE062` is a Comfort, `F-OS062` is a Frame):
 
 | Series | Bubbles | Jets | Ozone | UVC |
 | --- | :-: | :-: | :-: | :-: |
@@ -46,12 +47,16 @@ that series has:
 | Elite | ✅ | ✅ | ✅ | |
 | Muse | ✅ | ✅ | ✅ | |
 
-If your model is not recognized, the app keeps bubbles, ozone and UVC available
-rather than hiding them. That is deliberate: a control the spa does not have is
-simply rejected by the M-Spa cloud, while a control that was hidden by mistake
-used to be impossible to get back. If you see a control your spa does not have,
-that is why — please open an issue with your model code so the profile can be
-added.
+Model codes beginning `C-`, `D-`, `P-`, `M-` or `F-` are matched this way. Urban,
+Elite and Verto have no published series letter, so their codes are not guessed
+at.
+
+If your model still is not recognized, the app keeps bubbles, ozone and UVC
+available rather than hiding them. That is deliberate: a control the spa does not
+have is simply rejected by the M-Spa cloud, while a control that was hidden by
+mistake used to be impossible to get back. If you see a control your spa does not
+have, that is why — please open an issue with your model code so the profile can
+be added.
 
 ## Troubleshooting
 
