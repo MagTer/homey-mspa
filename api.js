@@ -24,7 +24,8 @@ export default {
       await testClient.authenticate();
       return { success: true };
     } catch (err) {
-      throw new Error(err.message || 'Authentication failed');
+      const message = err instanceof Error ? err.message : '';
+      throw new Error(message || 'Authentication failed');
     }
   },
 };

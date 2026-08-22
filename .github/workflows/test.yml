@@ -21,8 +21,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Both configs: tsconfig.json compiles the TypeScript, tsconfig.check.json
+      # type-checks the plain JS (api.js, widgets/**) that the build ignores.
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Unit tests
         run: npm test
