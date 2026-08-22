@@ -86,22 +86,62 @@ are driven by the model profile in `lib/mspa-api/profiles.ts`.
 
 ```bash
 npm ci
-npx tsc --noEmit      # must be clean
+npm run typecheck     # must be clean — both tsconfigs, see below
 npm test              # must be green
+npm run coverage      # optional; prints per-file coverage
 npx homey app build   # regenerates app.json from .homeycompose
 npx homey app validate --level publish
 ```
+
+`npm run typecheck` runs two configs. `tsconfig.json` compiles the TypeScript
+into `.homeybuild/`. `tsconfig.check.json` type-checks the plain JavaScript the
+build ignores — `api.js` and `widgets/**/*.js` — and never emits. Both must pass;
+CI runs both.
 
 If you changed anything under `.homeycompose/` or `driver.compose.json`, commit
 the regenerated `app.json` with it. That file is generated, but it is tracked —
 the Homey CLI will not run without it — and CI fails if it has drifted from the
 Compose sources. Never edit `app.json` by hand.
 
-Add tests for behavior you change. The Flow condition semantics in
+### Testing
+
+Add tests for behaviour you change. The Flow condition semantics in
 `test/drivers/mspa/driver.test.ts` and the capability rules in
-`test/drivers/mspa/device.test.ts` are there to lock behavior that has broken
+`test/drivers/mspa/device.test.ts` are there to lock behaviour that has broken
 before — if your change makes one of them fail, that is a conversation for the
 pull request, not a test to update quietly.
+
+Four rules earned their place by something passing green while being wrong:
+
+**Import the code under test; never reimplement it.** A test that recomputes
+the expected value with its own copy of the logic asserts only that it agrees
+with itself. `test/mspa-api/signature.test.ts` did exactly this for the request
+signing scheme — the file looked thorough and would have passed while the real
+signer was broken, which would have locked every user out of their spa. Fixed
+vectors, computed by hand or by a different tool, beat a recomputation.
+
+**Registration is not behaviour.** Asserting that a Flow card was registered
+says nothing about what it does. Call the run listener with real arguments and
+assert what comes back. Twelve of seventeen cards were registration-only until
+this was written down.
+
+**Check that a new test can fail.** Break the code it covers — invert a
+comparison, delete a guard — and confirm the test goes red before you commit it.
+Several tests in this repository passed against deliberately broken code: a
+`vi.advanceTimersByTime` assertion against the widget's interval measured
+nothing at all, because vitest's fake timers patch `globalThis` and the widget
+calls the jsdom window's timers.
+
+**Cover the JavaScript too.** `api.js`, `widgets/mspa-panel/api.js` and the
+script inlined in `widgets/mspa-panel/public/index.html` ship to users exactly
+like the TypeScript does. The widget frontend is tested by loading the page into
+jsdom (`test/widgets/mspa-panel-ui.test.ts`), so the inline script needs no
+restructuring to be covered.
+
+The suite still cannot see everything. Anything touching the real M-Spa cloud,
+Homey's own SDK behaviour, or how the widget renders on a physical dashboard has
+to be verified by installing the app — `npm run install:homey` — and the pull
+request should say that is what you did.
 
 Keep commits focused. A pull request that adds a feature should not also
 reformat unrelated files, change app metadata, or bump the version.

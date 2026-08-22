@@ -1,0 +1,29 @@
+{
+  // Type-checks the plain JavaScript that the build tsconfig deliberately does
+  // not compile: the settings-page endpoint and the dashboard widget backend.
+  // Kept separate from tsconfig.json so nothing here can change what `tsc`
+  // emits into .homeybuild/ — this config never emits.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    // These files receive untyped Homey SDK objects as parameters. Implicit any
+    // on those is expected; the value here is catching typos, wrong arity and
+    // properties that do not exist.
+    "noImplicitAny": false,
+    "strictNullChecks": false
+  },
+  "include": [
+    "lib/**/*.ts",
+    "app.ts",
+    "drivers/**/*.ts",
+    "api.js",
+    "widgets/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "test",
+    ".homeybuild"
+  ]
+}

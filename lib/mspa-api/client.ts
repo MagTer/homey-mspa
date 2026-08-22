@@ -5,6 +5,12 @@
 
 import * as crypto from 'node:crypto';
 import { MspaThrottle } from './throttle.js';
+import {
+  APP_ID,
+  buildAuthHeaders,
+  currentTimestamp,
+  generateNonce,
+} from './signing.js';
 import { MspaAuthError, MspaNetworkError, MspaRateLimitError } from './errors.js';
 import { ApiResponse, DeviceInfo, MspaClientConfig, RawShadowData } from './types.js';
 
@@ -21,10 +27,6 @@ export class MspaApiClient {
   private readonly region: string;
   private readonly baseUrl: string;
   private readonly throttle: MspaThrottle;
-
-  // Hardcoded credentials (as per API spec)
-  private static readonly APP_ID = 'e1c8e068f9ca11eba4dc0242ac120002';
-  private static readonly APP_SECRET = '87025c9ecd18906d27225fe79cb68349';
 
   // Token state
   private token: string | null = null;
@@ -60,33 +62,7 @@ export class MspaApiClient {
    * Generate authentication headers for API requests
    */
   private generateHeaders(token?: string): Record<string, string> {
-    const nonce = crypto.randomBytes(16).toString('hex');
-    const ts = Math.floor(Date.now() / 1000).toString();
-    
-    // Generate signature: MD5(appId,appSecret,nonce,ts) uppercase
-    const sign = crypto
-      .createHash('md5')
-      .update(`${MspaApiClient.APP_ID},${MspaApiClient.APP_SECRET},${nonce},${ts}`)
-      .digest('hex')
-      .toUpperCase();
-
-    const headers: Record<string, string> = {
-      appid: MspaApiClient.APP_ID,
-      nonce,
-      ts,
-      sign,
-      'content-type': 'application/json',
-      'user-agent': 'okhttp/4.9.0',
-      'push_type': 'android',
-    };
-
-    if (token) {
-      headers.authorization = `token ${token}`;
-    } else {
-      headers.authorization = 'token';
-    }
-
-    return headers;
+    return buildAuthHeaders(generateNonce(), currentTimestamp(), token);
   }
 
   /**
@@ -200,7 +176,7 @@ export class MspaApiClient {
       account: this.email,
       email: this.email,
       password: this.passwordHash,
-      app_id: MspaApiClient.APP_ID,
+      app_id: APP_ID,
       push_type: 'android',
     });
 

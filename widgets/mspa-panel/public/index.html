@@ -531,8 +531,9 @@
     }
 
     function t(key) {
-      const pack = LABELS[lang()] || LABELS.de;
-      return pack[key] || LABELS.de[key] || key;
+      // English is the repository's base language; fall back to it, not to de.
+      const pack = LABELS[lang()] || LABELS.en;
+      return pack[key] || LABELS.en[key] || key;
     }
 
     function fmtTemp(v) {
