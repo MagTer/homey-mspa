@@ -105,11 +105,20 @@ describe('widget label packs', () => {
     load({ language: 'fr-FR' }); expect(win.lang()).toBe('en');
   });
 
-  it('falls back to English for an unknown key, not to another language', () => {
-    // The repository's base language is English; a missing key must not surface
-    // German text to an English user.
-    expect(win.t('definitely_not_a_key')).toBe('definitely_not_a_key');
-    load({ language: 'sv-SE' });
+  it('falls back to English, not German, when the selected pack is missing', () => {
+    // Unreachable in practice — lang() only returns codes that have a pack, and
+    // the parity test above keeps every pack complete. It is still the wrong
+    // default to leave in place: this used to fall back to LABELS.de, so any
+    // future gap would have surfaced German to everyone. Forcing lang() to an
+    // unknown code is the only way to exercise the branch.
+    win.lang = () => 'xx';
+    const packs = win.eval('LABELS');
+    for (const key of Object.keys(packs.en)) {
+      expect(win.t(key)).toBe(packs.en[key]);
+    }
+  });
+
+  it('returns the key itself when no pack defines it', () => {
     expect(win.t('definitely_not_a_key')).toBe('definitely_not_a_key');
   });
 });
