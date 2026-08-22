@@ -111,6 +111,40 @@ export const MODEL_PREFIX_PROFILES: Array<[string, MspaProfile]> = [
 ];
 
 /**
+ * Series letter prefixes, taken from the model-code scheme documented above.
+ *
+ * Consulted only after both the model-prefix overrides and the series/model
+ * substring match have failed, so this can never change a resolution that
+ * already worked — it only rescues codes that would otherwise fall through to
+ * the unknown `Standard` profile. The substring match needs the API to return
+ * a `product_series` containing the literal series name; nothing in this
+ * repository records that it always does, and issue #10 (Oslo) is what a miss
+ * looks like: a model the table covers, resolved as unknown, keeping a jets
+ * control the hardware does not have.
+ *
+ * Only letters that the series comments above state explicitly are listed.
+ * Urban, Elite and Verto have no documented letter, so they are deliberately
+ * absent — guessing one would strip capabilities from the wrong hardware, and
+ * capability removal is destructive.
+ */
+export const SERIES_PREFIX_PROFILES: Array<[string, keyof typeof PROFILES]> = [
+  ['C', 'COMFORT'],
+  ['D', 'DELIGHT'],
+  ['P', 'PREMIUM'],
+  ['M', 'MUSE'],
+  ['F', 'FRAME'],
+];
+
+/**
+ * Shape of an M-Spa model code: series letter, dash, two model letters, then
+ * the size digits — C-BE062, F-OS062, M-CA041, F-TU062W.
+ *
+ * Deliberately strict. A loose `startsWith('F-')` would match any string the
+ * cloud happens to send, and a wrong match here removes capabilities.
+ */
+const MODEL_CODE = /^([A-Z])-[A-Z]{2}\d{2}/;
+
+/**
  * Default when series/model is unknown or empty.
  * Prefer **keeping** ozone/UVC so Flow cards work; Comfort/Delight still strip
  * them when the series is explicitly recognized without those features.
@@ -129,7 +163,8 @@ export const DEFAULT_PROFILE: MspaProfile = {
  *   1. product_model prefix (most specific)
  *   2. product_series substring
  *   3. product_model substring (catches codes like "FRAME-X")
- *   4. default
+ *   4. model-code series letter (C-BE062 -> Comfort)
+ *   5. default
  */
 export function getProfile(productSeries: string = '', productModel: string = ''): MspaProfile {
   const modelUpper = productModel.toUpperCase();
@@ -144,6 +179,14 @@ export function getProfile(productSeries: string = '', productModel: string = ''
   for (const [key, profile] of Object.entries(PROFILES)) {
     if (seriesUpper.includes(key) || modelUpper.includes(key)) {
       return profile;
+    }
+  }
+
+  const code = MODEL_CODE.exec(modelUpper);
+  if (code) {
+    const match = SERIES_PREFIX_PROFILES.find(([letter]) => letter === code[1]);
+    if (match) {
+      return PROFILES[match[1]];
     }
   }
 
