@@ -22,5 +22,8 @@
   },
   "1.0.6": {
     "en": "The Heating indicator now shows when the spa is actually heating the water, instead of only that the heater is switched on. Spas whose firmware does not report this keep the previous behaviour. Flows that check the heater are unchanged."
+  },
+  "1.0.7": {
+    "en": "The dashboard widget now keeps up with the spa. While the panel is open, buttons pressed on the spa itself show up within about half a minute instead of waiting for the next 15-minute update. Fix: bubbles now show as off when the spa reports them off, even if it still reports a leftover speed — Flows using the bubbles condition are correct again on those models."
   }
 }
