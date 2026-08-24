@@ -15,10 +15,11 @@
     "sv": "M-Spa"
   },
   "description": {
-    "en": "Control and monitor your M-Spa hot tub directly from Homey.",
-    "de": "Steuere und überwache deinen M-Spa Whirlpool direkt mit Homey.",
-    "no": "Kontroller og overvåk M-Spa-badekaret ditt direkte fra Homey.",
-    "sv": "Styr och övervaka ditt M-Spa-spabad direkt från Homey."
+    "en": "Always warm, always ready.",
+    "de": "Immer warm, immer bereit.",
+    "nl": "Altijd warm, altijd klaar.",
+    "no": "Alltid varmt, alltid klart.",
+    "sv": "Alltid varmt, alltid redo."
   },
   "category": [
     "climate"

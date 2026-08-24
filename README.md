@@ -1,6 +1,8 @@
 # M-Spa for Homey
 
-Control and monitor your M-Spa hot tub directly from Homey.
+A Homey app for M-Spa hot tubs. It reads water temperature and fault state,
+and drives the heater, filter, bubbles, jets, ozone and UVC through Flow cards
+and a dashboard widget.
 
 ## Features
 
