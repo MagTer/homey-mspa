@@ -115,6 +115,15 @@ export default class MspaDriver extends Homey.Driver {
       });
 
     // Register Flow Actions
+    this.homey.flow.getActionCard('update_values')
+      .registerRunListener(async (args) => {
+        const device = args.device;
+        if (typeof device.refreshValues === 'function') {
+          return device.refreshValues();
+        }
+        throw new Error('This device cannot refresh values');
+      });
+
     this.homey.flow.getActionCard('set_temperature')
       .registerRunListener(async (args) => {
         return args.device.triggerCapabilityListener('target_temperature', args.temperature);

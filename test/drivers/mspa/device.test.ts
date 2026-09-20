@@ -377,6 +377,52 @@ describe('MspaDevice', () => {
     });
   });
 
+  describe('refreshValues (Flow THEN Update values)', () => {
+    const okShadow = {
+      water_temperature: 76,
+      temperature_setting: 80,
+      heater_state: 1,
+      filter_state: 0,
+      bubble_state: 1,
+      bubble_level: 0,
+      uvc_state: 0,
+      ozone_state: 0,
+      jet_state: 0,
+      fault: '',
+    };
+    const okParsed = {
+      water_temperature: 38,
+      temperature_setting: 40,
+      heater_state: true,
+      filter_state: false,
+      bubble_state: true,
+      bubble_level: 0,
+      uvc_state: false,
+      ozone_state: false,
+      jet_state: false,
+      fault: '',
+    };
+
+    it('fetches the cloud shadow and writes capabilities before resolving', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+
+      await device.refreshValues();
+
+      expect(mockGetThingShadow).toHaveBeenCalledWith('test-device-id', 'test-product-id');
+      expect(device.getCapabilityValue('measure_temperature')).toBe(38);
+      expect(device.getCapabilityValue('target_temperature')).toBe(40);
+    });
+
+    it('throws when the cloud fetch fails so later AND cards do not run on stale values', async () => {
+      mockGetThingShadow.mockRejectedValue(new Error('Network error'));
+
+      await expect(device.refreshValues()).rejects.toThrow(
+        'Could not refresh spa values from the cloud',
+      );
+    });
+  });
+
   describe('Shadow-to-capability mapping', () => {
     it('should correctly map all 10 capabilities from parsed shadow', async () => {
       // Setup

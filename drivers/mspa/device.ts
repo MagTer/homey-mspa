@@ -590,6 +590,19 @@ export default class MspaDevice extends Homey.Device {
     return this.pollInFlight;
   }
 
+  /**
+   * Flow THEN "Update values": fetch the cloud shadow now and wait until
+   * capabilities are written. Throws if the fetch did not succeed so a
+   * later AND-card in Advanced Flow does not run on stale values.
+   */
+  async refreshValues(): Promise<void> {
+    const before = this.lastPollAt;
+    await this.performPoll();
+    if (this.lastPollAt <= before) {
+      throw new Error('Could not refresh spa values from the cloud');
+    }
+  }
+
   private async pollOnce() {
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;

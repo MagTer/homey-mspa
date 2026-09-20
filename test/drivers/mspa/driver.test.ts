@@ -16,6 +16,7 @@ const { mockClientClass, mockFlowCards } = vi.hoisted(() => {
       device_is_online: { registerRunListener: vi.fn() },
     },
     actions: {
+      update_values: { registerRunListener: vi.fn() },
       set_temperature: { registerRunListener: vi.fn() },
       toggle_heater: { registerRunListener: vi.fn() },
       toggle_filter: { registerRunListener: vi.fn() },
@@ -194,6 +195,7 @@ describe('MspaDriver Pairing Flow', () => {
       expect(mockFlowCards.conditions.bubbles_is_active.registerRunListener).toHaveBeenCalled();
       expect(mockFlowCards.conditions.device_is_online.registerRunListener).toHaveBeenCalled();
       expect(mockFlowCards.actions.set_temperature.registerRunListener).toHaveBeenCalled();
+      expect(mockFlowCards.actions.update_values.registerRunListener).toHaveBeenCalled();
     });
 
     it('device_is_online follows Homey availability', async () => {
@@ -344,6 +346,20 @@ describe('MspaDriver Pairing Flow', () => {
     const actionDevice = (caps: string[] = []) => ({
       hasCapability: (c: string) => caps.includes(c),
       triggerCapabilityListener: vi.fn().mockResolvedValue(undefined),
+    });
+
+    it('update_values awaits a cloud refresh', async () => {
+      const refreshValues = vi.fn().mockResolvedValue(undefined);
+      await runAction('update_values', { refreshValues });
+      expect(refreshValues).toHaveBeenCalledTimes(1);
+    });
+
+    it('update_values fails when the cloud refresh fails', async () => {
+      await expect(runAction('update_values', {
+        refreshValues: vi.fn().mockRejectedValue(
+          new Error('Could not refresh spa values from the cloud'),
+        ),
+      })).rejects.toThrow('Could not refresh spa values from the cloud');
     });
 
     it('set_temperature passes the requested target through', async () => {
