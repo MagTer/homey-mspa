@@ -803,8 +803,8 @@
         "hint": {
           "en": "Fetches water temperature, target temperature and all switches from the cloud now, and waits until Homey has the new values. In Advanced Flows, later AND cards see the updated values. In simple Flows, AND cards still run first.",
           "de": "Holt Ist-/Solltemperatur und alle Schalter jetzt aus der Cloud und wartet, bis Homey die neuen Werte hat. In erweiterten Flows sehen folgende UND-Karten die frischen Werte. In einfachen Flows laufen UND-Karten weiterhin zuerst.",
-          "no": "Henter vanntemperatur, måltemperatur og alle brytere fra skyen nå, og venter til Homey har de nye verdiene. I avanserte Flows ser senere OG-kort de oppdaterte verdiene.",
-          "sv": "Hämtar vattentemperatur, måltemperatur och alla brytare från molnet nu, och väntar tills Homey har de nya värdena. I avancerade Flows ser senare OCH-kort de uppdaterade värdena."
+          "no": "Henter vanntemperatur, måltemperatur og alle brytere fra skyen nå, og venter til Homey har de nye verdiene. I avanserte Flows ser senere OG-kort de oppdaterte verdiene. I enkle Flows kjører OG-kort fortsatt først.",
+          "sv": "Hämtar vattentemperatur, måltemperatur och alla brytare från molnet nu, och väntar tills Homey har de nya värdena. I avancerade Flows ser senare OCH-kort de uppdaterade värdena. I enkla Flows körs OCH-kort fortfarande först."
         },
         "args": [
           {

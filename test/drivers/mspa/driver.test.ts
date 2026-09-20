@@ -348,7 +348,7 @@ describe('MspaDriver Pairing Flow', () => {
       triggerCapabilityListener: vi.fn().mockResolvedValue(undefined),
     });
 
-    it('update_values awaits a cloud refresh', async () => {
+    it('update_values calls refreshValues on the device', async () => {
       const refreshValues = vi.fn().mockResolvedValue(undefined);
       await runAction('update_values', { refreshValues });
       expect(refreshValues).toHaveBeenCalledTimes(1);

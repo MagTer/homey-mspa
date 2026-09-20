@@ -123,7 +123,19 @@ confirm it goes red.
 
 ## Polling
 
-Idle poll every 15 minutes (`900000` ms). After a command, rapid-poll every
-5 seconds for 30 seconds, then fall back. Commands also mirror their value onto
-the capability optimistically so Flow conditions see the new state before the
-next poll. Keep this shape — it exists to stay inside M-Spa's cloud limits.
+Three cloud-shadow paths. Keep this shape — it exists to stay inside M-Spa's
+cloud limits (no published rate limit is known; the 0.4 s client throttle
+spaces calls, it does not cap them).
+
+1. **Idle:** every 15 minutes (`900000` ms).
+2. **Rapid:** after a Homey command, every 5 seconds for 30 seconds, then idle.
+   Commands also mirror their value onto the capability so Flow conditions see
+   the new state before the next poll.
+3. **User-triggered (`update_values` Then card):** one `performPoll` now, then
+   the Flow continues. Reuses the widget window (`WIDGET_SHADOW_MAX_AGE_MS`,
+   30 s): if `lastPollAt` is still within that window the card returns success
+   without another fetch. Failures use the same exponential backoff and the
+   3-failure circuit breaker as the dashboard widget. The card throws if it
+   cannot produce a fresh shadow, so a later Advanced-Flow AND card does not
+   run on stale values. The 30 s window is the same number MagTer accepted for
+   the widget (PR #16); change it in one place if M-Spa's real limit is known.
