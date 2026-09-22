@@ -131,11 +131,12 @@ spaces calls, it does not cap them).
 2. **Rapid:** after a Homey command, every 5 seconds for 30 seconds, then idle.
    Commands also mirror their value onto the capability so Flow conditions see
    the new state before the next poll.
-3. **User-triggered (`update_values` Then card):** one `performPoll` now, then
-   the Flow continues. Reuses the widget window (`WIDGET_SHADOW_MAX_AGE_MS`,
-   30 s): if `lastPollAt` is still within that window the card returns success
-   without another fetch. Failures use the same exponential backoff and the
-   3-failure circuit breaker as the dashboard widget. The card throws if it
-   cannot produce a fresh shadow, so a later Advanced-Flow AND card does not
-   run on stale values. The 30 s window is the same number MagTer accepted for
-   the widget (PR #16); change it in one place if M-Spa's real limit is known.
+3. **User-triggered (`update_values` Then card):** one `performPoll`, then
+   the Flow continues. A shadow younger than `WIDGET_SHADOW_MAX_AGE_MS`
+   (30 s) is reused, so the card fetches at most once per 30 s. A Flow every
+   minute still fetches. After a failure the gap doubles from 30 s and is
+   capped at `WIDGET_FAIL_BACKOFF_CAP_MS` (120 s); once that gap has elapsed
+   the card tries again. Unlike the widget it does not hard-stop at 3
+   failures. The card throws while the gap is open or the fetch fails, so a
+   later Advanced-Flow AND card does not run on stale values. The 30 s window
+   is the same number MagTer accepted for the widget (PR #16).

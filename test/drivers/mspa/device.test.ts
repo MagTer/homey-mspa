@@ -462,7 +462,22 @@ describe('MspaDevice', () => {
       expect(mockGetThingShadow).not.toHaveBeenCalled();
     });
 
-    it('does not hit the cloud after 3 failures (same circuit breaker as the widget)', async () => {
+    it('throws without a cloud fetch while the 1-failure gap is still open', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+      (device as any).consecutiveFailures = 1;
+      (device as any).lastPollAt = Date.now() - 60_000;
+      (device as any).lastAttemptAt = Date.now();
+
+      await expect(device.refreshValues()).rejects.toThrow(
+        'Could not refresh spa values from the cloud',
+      );
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+    });
+
+    it('does not hit the cloud within 120s after 3 failures', async () => {
       mockGetThingShadow.mockResolvedValue(okShadow);
       mockParseShadow.mockReturnValue(okParsed);
       await device.onInit();
@@ -475,6 +490,20 @@ describe('MspaDevice', () => {
         'Could not refresh spa values from the cloud',
       );
       expect(mockGetThingShadow).not.toHaveBeenCalled();
+    });
+
+    it('fetches again after 3 failures once the 120s gap has elapsed', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+      (device as any).consecutiveFailures = 3;
+      (device as any).lastPollAt = Date.now() - 180_000;
+      (device as any).lastAttemptAt = Date.now() - 121_000;
+
+      await device.refreshValues();
+
+      expect(mockGetThingShadow).toHaveBeenCalled();
     });
 
     it('points at app settings when the account is not configured', async () => {

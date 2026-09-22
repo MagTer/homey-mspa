@@ -592,12 +592,16 @@ export default class MspaDevice extends Homey.Device {
   }
 
   /**
-   * Flow THEN "Update values": fetch the cloud shadow now and wait until
+   * Flow THEN "Update values": fetch the cloud shadow and wait until
    * capabilities are written. Throws if the fetch did not succeed so a
    * later AND-card in Advanced Flow does not run on stale values.
    *
-   * Reuses the widget window ([WIDGET_SHADOW_MAX_AGE_MS]) and failure
-   * backoff so a 1-minute Flow cannot add ~1440 cloud fetches/day.
+   * A shadow younger than [WIDGET_SHADOW_MAX_AGE_MS] (30 s) is reused, so
+   * the card fetches at most once per 30 s (2,880/day). That is the ceiling;
+   * a Flow every minute still fetches, because 60 s sits outside the window.
+   * After a failure the gap doubles from 30 s and is capped at
+   * [WIDGET_FAIL_BACKOFF_CAP_MS] (120 s). Once that gap has elapsed the card
+   * tries again. Unlike the widget it does not hard-stop at 3 failures.
    */
   async refreshValues(): Promise<void> {
     if (
@@ -605,9 +609,6 @@ export default class MspaDevice extends Homey.Device {
       Date.now() - this.lastPollAt < MspaDevice.WIDGET_SHADOW_MAX_AGE_MS
     ) {
       return;
-    }
-    if (this.consecutiveFailures >= 3) {
-      throw new Error('Could not refresh spa values from the cloud');
     }
     const gap = this.widgetRefreshGapMs(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS);
     if (
