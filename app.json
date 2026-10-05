@@ -197,10 +197,10 @@
           "sv": "Spat är !{{online|offline}}"
         },
         "hint": {
-          "en": "Online means Homey can reach the spa via the M-Spa cloud (last polls succeeded). Offline after several failed polls — or if the cloud/account is unreachable.",
-          "de": "Online heißt: Homey erreicht das Spa über die M-Spa-Cloud (letzte Abfragen ok). Offline nach mehreren Fehlversuchen — oder wenn Cloud/Konto nicht erreichbar ist.",
-          "no": "Online betyr at Homey når spaet via M-Spa-skyen. Offline etter flere feilede spørringer — eller hvis sky/konto er utilgjengelig.",
-          "sv": "Online betyder att Homey når spat via M-Spa-molnet (senaste förfrågningarna lyckades). Offline efter flera misslyckade försök — eller om moln/konto inte går att nå."
+          "en": "Online means the cloud reports the spa switched on. Switched off is offline on the next reading, and other Flow cards still run. Several failed polls still mark the device unavailable.",
+          "de": "Online heißt: die Cloud meldet das Spa als eingeschaltet. Ausgeschaltet ist beim nächsten Abruf offline, andere Flow-Karten laufen weiter. Nach mehreren fehlgeschlagenen Abrufen markiert Homey das Gerät als nicht verfügbar.",
+          "no": "Online betyr at skyen melder spaet som på. Avslått blir offline ved neste avlesning, og andre Flow-kort kjører videre. Etter flere feilede spørringer merkes enheten som utilgjengelig.",
+          "sv": "Online betyder att molnet rapporterar att spat är påslaget. Avstängt blir offline vid nästa avläsning, och andra Flow-kort körs vidare. Efter flera misslyckade försök markeras enheten som otillgänglig."
         },
         "args": [
           {

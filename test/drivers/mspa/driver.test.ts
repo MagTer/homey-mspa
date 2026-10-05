@@ -198,10 +198,16 @@ describe('MspaDriver Pairing Flow', () => {
       expect(mockFlowCards.actions.update_values.registerRunListener).toHaveBeenCalled();
     });
 
-    it('device_is_online follows Homey availability', async () => {
+    it('device_is_online follows the spa flag, not Homey availability', async () => {
       await driver.onInit();
       const listener = mockFlowCards.conditions.device_is_online.registerRunListener.mock.calls[0][0];
 
+      await expect(listener({
+        device: { isSpaOnline: () => false, getAvailable: () => true },
+      })).resolves.toBe(false);
+      await expect(listener({
+        device: { isSpaOnline: () => true, getAvailable: () => false },
+      })).resolves.toBe(true);
       await expect(listener({ device: { getAvailable: () => true } })).resolves.toBe(true);
       await expect(listener({ device: { getAvailable: () => false } })).resolves.toBe(false);
       await expect(listener({ device: {} })).resolves.toBe(false);
