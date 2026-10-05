@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "Update values",
+    "de": "Werte updaten",
+    "no": "Oppdater verdier",
+    "sv": "Uppdatera värden"
+  },
+  "titleFormatted": {
+    "en": "Update values",
+    "de": "Werte updaten",
+    "no": "Oppdater verdier",
+    "sv": "Uppdatera värden"
+  },
+  "hint": {
+    "en": "Fetches water temperature, target temperature and all switches from the cloud, and waits until Homey has the new values. A reading younger than 30 seconds is reused. In Advanced Flows, later AND cards see the updated values. In simple Flows, AND cards still run first.",
+    "de": "Holt Ist-/Solltemperatur und alle Schalter aus der Cloud und wartet, bis Homey die neuen Werte hat. Ein Stand, der jünger als 30 Sekunden ist, wird übernommen. In erweiterten Flows sehen folgende UND-Karten die frischen Werte. In einfachen Flows laufen UND-Karten weiterhin zuerst.",
+    "no": "Henter vanntemperatur, måltemperatur og alle brytere fra skyen, og venter til Homey har de nye verdiene. En avlesning yngre enn 30 sekunder brukes på nytt. I avanserte Flows ser senere OG-kort de oppdaterte verdiene. I enkle Flows kjører OG-kort fortsatt først.",
+    "sv": "Hämtar vattentemperatur, måltemperatur och alla brytare från molnet, och väntar tills Homey har de nya värdena. En avläsning yngre än 30 sekunder återanvänds. I avancerade Flows ser senare OCH-kort de uppdaterade värdena. I enkla Flows körs OCH-kort fortfarande först."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "device",
+      "filter": "driver_id=mspa"
+    }
+  ]
+}

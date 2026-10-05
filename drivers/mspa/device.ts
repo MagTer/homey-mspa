@@ -17,7 +17,7 @@ export default class MspaDevice extends Homey.Device {
   private lastPollAt: number = 0;
   /** Last cloud fetch attempt (ms), success or fail — stops error storms. */
   private lastAttemptAt: number = 0;
-  private pollInFlight: Promise<void> | null = null;
+  private pollInFlight: Promise<boolean> | null = null;
   /**
    * Widget-visible shadow refresh (healthy). Rapid poll after Homey/widget
    * commands stays 5 s × 30 s.
@@ -567,7 +567,7 @@ export default class MspaDevice extends Homey.Device {
     if (this.lastAttemptAt > 0 && Date.now() - this.lastAttemptAt < gap) {
       return;
     }
-    return this.performPoll();
+    await this.performPoll();
   }
 
   /** Healthy: maxAgeMs. After n failures: maxAge × 2^n, capped. */
@@ -578,9 +578,10 @@ export default class MspaDevice extends Homey.Device {
   }
 
   /**
-   * Perform a single poll cycle
+   * Perform a single poll cycle. Resolves true only after capabilities
+   * have been written from a successful shadow fetch.
    */
-  async performPoll() {
+  async performPoll(): Promise<boolean> {
     if (this.pollInFlight) {
       return this.pollInFlight;
     }
@@ -590,7 +591,43 @@ export default class MspaDevice extends Homey.Device {
     return this.pollInFlight;
   }
 
-  private async pollOnce() {
+  /**
+   * Flow THEN "Update values": fetch the cloud shadow and wait until
+   * capabilities are written. Throws if the fetch did not succeed so a
+   * later AND-card in Advanced Flow does not run on stale values.
+   *
+   * A shadow younger than [WIDGET_SHADOW_MAX_AGE_MS] (30 s) is reused, so
+   * the card fetches at most once per 30 s (2,880/day). That is the ceiling;
+   * a Flow every minute still fetches, because 60 s sits outside the window.
+   * After a failure the gap doubles from 30 s and is capped at
+   * [WIDGET_FAIL_BACKOFF_CAP_MS] (120 s). Once that gap has elapsed the card
+   * tries again. Unlike the widget it does not hard-stop at 3 failures.
+   */
+  async refreshValues(): Promise<void> {
+    if (
+      this.lastPollAt > 0 &&
+      Date.now() - this.lastPollAt < MspaDevice.WIDGET_SHADOW_MAX_AGE_MS
+    ) {
+      return;
+    }
+    const gap = this.widgetRefreshGapMs(MspaDevice.WIDGET_SHADOW_MAX_AGE_MS);
+    if (
+      this.consecutiveFailures > 0 &&
+      this.lastAttemptAt > 0 &&
+      Date.now() - this.lastAttemptAt < gap
+    ) {
+      throw new Error('Could not refresh spa values from the cloud');
+    }
+    if (!this.getApiClient()) {
+      throw new Error('Please configure your M-Spa account in app settings');
+    }
+    const ok = await this.performPoll();
+    if (!ok) {
+      throw new Error('Could not refresh spa values from the cloud');
+    }
+  }
+
+  private async pollOnce(): Promise<boolean> {
     const deviceId = this.getData().id;
     const product_id = this.getStore().product_id;
     const apiClient = this.getApiClient();
@@ -598,7 +635,7 @@ export default class MspaDevice extends Homey.Device {
     if (!apiClient) {
       this.log('Missing API client (account not configured)');
       this.setUnavailable('Please configure your M-Spa account in app settings.');
-      return;
+      return false;
     }
 
     this.lastAttemptAt = Date.now();
@@ -606,8 +643,7 @@ export default class MspaDevice extends Homey.Device {
     try {
       const shadow = await apiClient.getThingShadow(deviceId, product_id);
       this.consecutiveFailures = 0;
-      this.lastPollAt = Date.now();
-      
+
       if (!this.wasAvailable) {
         this.log('Device recovered, firing device_online trigger');
         this.triggerCards.device_online.trigger(this)
@@ -617,10 +653,13 @@ export default class MspaDevice extends Homey.Device {
       }
 
       await this.syncFromShadow(parseShadow(shadow));
+      this.lastPollAt = Date.now();
       this.log('Poll successful');
+      return true;
     } catch (err: any) {
       this.log(`Poll failed: ${err.message}`);
       this.handleApiError();
+      return false;
     }
   }
 

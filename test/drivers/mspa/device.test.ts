@@ -377,6 +377,149 @@ describe('MspaDevice', () => {
     });
   });
 
+  describe('refreshValues (Flow THEN Update values)', () => {
+    const okShadow = {
+      water_temperature: 76,
+      temperature_setting: 80,
+      heater_state: 1,
+      filter_state: 0,
+      bubble_state: 1,
+      bubble_level: 0,
+      uvc_state: 0,
+      ozone_state: 0,
+      jet_state: 0,
+      fault: '',
+    };
+    const okParsed = {
+      water_temperature: 38,
+      temperature_setting: 40,
+      heater_state: true,
+      filter_state: false,
+      bubble_state: true,
+      bubble_level: 0,
+      uvc_state: false,
+      ozone_state: false,
+      jet_state: false,
+      fault: '',
+    };
+
+    it('fetches the cloud shadow and writes capabilities before resolving', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+
+      await device.refreshValues();
+
+      expect(mockGetThingShadow).toHaveBeenCalledWith('test-device-id', 'test-product-id');
+      expect(device.getCapabilityValue('measure_temperature')).toBe(38);
+      expect(device.getCapabilityValue('target_temperature')).toBe(40);
+    });
+
+    it('throws when the cloud fetch fails so later AND cards do not run on stale values', async () => {
+      mockGetThingShadow.mockRejectedValue(new Error('Network error'));
+
+      await expect(device.refreshValues()).rejects.toThrow(
+        'Could not refresh spa values from the cloud',
+      );
+    });
+
+    it('stays pending until getThingShadow resolves, then writes capabilities', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      expect(device.getCapabilityValue('measure_temperature')).toBe(38);
+
+      mockParseShadow.mockReturnValue({ ...okParsed, water_temperature: 39 });
+      let resolveShadow!: (value: unknown) => void;
+      mockGetThingShadow.mockReturnValue(
+        new Promise((resolve) => {
+          resolveShadow = resolve;
+        }),
+      );
+
+      (device as any).lastPollAt = 0;
+      (device as any).lastAttemptAt = 0;
+      let settled = false;
+      const pending = device.refreshValues().then(() => {
+        settled = true;
+      });
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      expect(device.getCapabilityValue('measure_temperature')).toBe(38);
+
+      resolveShadow(okShadow);
+      await pending;
+      expect(settled).toBe(true);
+      expect(device.getCapabilityValue('measure_temperature')).toBe(39);
+    });
+
+    it('returns success without another cloud fetch when lastPollAt is still fresh', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+
+      await device.refreshValues();
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+    });
+
+    it('throws without a cloud fetch while the 1-failure gap is still open', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+      (device as any).consecutiveFailures = 1;
+      (device as any).lastPollAt = Date.now() - 60_000;
+      (device as any).lastAttemptAt = Date.now();
+
+      await expect(device.refreshValues()).rejects.toThrow(
+        'Could not refresh spa values from the cloud',
+      );
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+    });
+
+    it('does not hit the cloud within 120s after 3 failures', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+      (device as any).consecutiveFailures = 3;
+      (device as any).lastPollAt = Date.now() - 60_000;
+      (device as any).lastAttemptAt = Date.now() - 60_000;
+
+      await expect(device.refreshValues()).rejects.toThrow(
+        'Could not refresh spa values from the cloud',
+      );
+      expect(mockGetThingShadow).not.toHaveBeenCalled();
+    });
+
+    it('fetches again after 3 failures once the 120s gap has elapsed', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockGetThingShadow.mockClear();
+      (device as any).consecutiveFailures = 3;
+      (device as any).lastPollAt = Date.now() - 180_000;
+      (device as any).lastAttemptAt = Date.now() - 121_000;
+
+      await device.refreshValues();
+
+      expect(mockGetThingShadow).toHaveBeenCalled();
+    });
+
+    it('points at app settings when the account is not configured', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue(okParsed);
+      await device.onInit();
+      mockHomeyDevice.app.getApiClient.mockReturnValue(null);
+      (device as any).lastPollAt = Date.now() - 60_000;
+      (device as any).lastAttemptAt = Date.now() - 60_000;
+
+      await expect(device.refreshValues()).rejects.toThrow(
+        'Please configure your M-Spa account in app settings',
+      );
+    });
+  });
+
   describe('Shadow-to-capability mapping', () => {
     it('should correctly map all 10 capabilities from parsed shadow', async () => {
       // Setup

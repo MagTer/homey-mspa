@@ -10,7 +10,7 @@ and a dashboard widget.
 - **Full Control**: Set target temperature (20–42 °C), toggle heater, filter, and bubbles.
 - **Advanced Features**: Control Jets, Ozone sanitizer, and UVC (on supported models).
 - **Dashboard Widget**: An interactive "M-Spa Panel" widget styled after the physical control panel.
-- **Flow Support**: Triggers ("Temperature changed", "Fault detected", device online/offline), actions for every control, and conditions for heater, filter, bubbles, jets, ozone, UVC, temperature and reachability.
+- **Flow Support**: Triggers ("Temperature changed", "Fault detected", device online/offline), actions for every control plus "Update values" (fetch the cloud shadow, reusing a reading younger than 30 seconds), and conditions for heater, filter, bubbles, jets, ozone, UVC, temperature and reachability.
 - **Status Visibility**: Get clear fault descriptions and connection status.
 - **Languages**: English, German, Norwegian and Swedish.
 
@@ -64,7 +64,7 @@ be added.
 
 - **"Please configure your account"**: This means you haven't completed Step 1 (Setup Instructions) yet.
 - **Device Unavailable**: Check if the hot tub is powered on and connected to your WiFi.
-- **API Polling**: Idle cloud poll every 15 minutes. After a Homey command, rapid poll every 5 seconds for 30 seconds. **Dashboard widget:** while the page is visible (`document.hidden`) it asks Homey for status every 5 seconds; Homey re-fetches the M-Spa shadow if the last *attempt* is older than **30 seconds** (~2 880 cloud fetches/day if a dashboard is left open 24 h; no published M-Spa rate limit is known). Failed fetches back off (30 s → 60 s → 120 s, cap 2 min); after 3 failures the widget stops hitting the cloud until the idle poll succeeds (recovery can take up to 15 minutes — same as idle). Backgrounded phones and parked tabs do not poll; becoming visible again fetches once immediately. Buttons used **on the spa** still update the widget in tens of seconds instead of waiting for the idle poll.
+- **API Polling**: Idle cloud poll every 15 minutes. After a Homey command, rapid poll every 5 seconds for 30 seconds. **Then card "Update values":** fetches the cloud shadow and waits. A shadow younger than **30 seconds** is reused (at most one fetch per 30 seconds). After a failure it waits 30 s, then 60 s, then at most 120 s, and tries again. **Dashboard widget:** while the page is visible (`document.hidden`) it asks Homey for status every 5 seconds; Homey re-fetches the M-Spa shadow if the last *attempt* is older than **30 seconds** (~2 880 cloud fetches/day if a dashboard is left open 24 h; no published M-Spa rate limit is known). Failed fetches back off (30 s → 60 s → 120 s, cap 2 min); after 3 failures the widget stops hitting the cloud until the idle poll succeeds (recovery can take up to 15 minutes — same as idle). Backgrounded phones and parked tabs do not poll; becoming visible again fetches once immediately. Buttons used **on the spa** still update the widget in tens of seconds instead of waiting for the idle poll.
 
 ## Developer Information
 
