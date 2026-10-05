@@ -19,6 +19,9 @@ export default class MspaDriver extends Homey.Driver {
     this.homey.flow.getConditionCard('device_is_online')
       .registerRunListener(async (args) => {
         const device = args.device;
+        if (typeof device.isSpaOnline === 'function') {
+          return device.isSpaOnline() === true;
+        }
         if (typeof device.getAvailable === 'function') {
           return device.getAvailable() === true;
         }

@@ -506,6 +506,19 @@ describe('MspaDevice', () => {
       expect(mockGetThingShadow).toHaveBeenCalled();
     });
 
+    it('marks the spa offline on one update when the cloud says it is switched off', async () => {
+      mockGetThingShadow.mockResolvedValue(okShadow);
+      mockParseShadow.mockReturnValue({ ...okParsed, is_online: false });
+      (device as any).triggerCards = mockTriggerCards;
+
+      await device.refreshValues();
+
+      expect(device.isSpaOnline()).toBe(false);
+      expect(device.isAvailable()).toBe(true);
+      expect(mockTriggerCards.device_offline.trigger).toHaveBeenCalledWith(device);
+      expect(mockTriggerCards.device_online.trigger).not.toHaveBeenCalled();
+    });
+
     it('points at app settings when the account is not configured', async () => {
       mockGetThingShadow.mockResolvedValue(okShadow);
       mockParseShadow.mockReturnValue(okParsed);
@@ -1213,6 +1226,48 @@ describe('MspaDevice', () => {
 
       // Assert
       expect(mockTriggerCards.fault_detected.trigger).not.toHaveBeenCalled();
+    });
+
+    it('marks the spa offline on the first poll when is_online is false', async () => {
+      (device as any).wasAvailable = true;
+      (device as any).triggerCards = mockTriggerCards;
+      mockParseShadow.mockReturnValue({ water_temperature: 38, is_online: false });
+
+      await device.performPoll();
+
+      expect(mockTriggerCards.device_offline.trigger).toHaveBeenCalledTimes(1);
+      expect(device.isSpaOnline()).toBe(false);
+      expect(device.isAvailable()).toBe(true);
+      expect(device.getCapabilityValue('measure_temperature')).toBe(38);
+
+      mockTriggerCards.device_offline.trigger.mockClear();
+      await device.performPoll();
+      expect(mockTriggerCards.device_offline.trigger).not.toHaveBeenCalled();
+      expect(device.isSpaOnline()).toBe(false);
+      expect(device.isAvailable()).toBe(true);
+    });
+
+    it('clears a stuck unavailable device when the spa is switched off', async () => {
+      (device as any)._available = false;
+      (device as any).triggerCards = mockTriggerCards;
+      mockParseShadow.mockReturnValue({ water_temperature: 38, is_online: false });
+
+      await device.performPoll();
+
+      expect(device.isAvailable()).toBe(true);
+      expect(device.isSpaOnline()).toBe(false);
+    });
+
+    it('comes back online when a later shadow says the spa is on', async () => {
+      (device as any).spaOnline = false;
+      (device as any).triggerCards = mockTriggerCards;
+      mockParseShadow.mockReturnValue({ water_temperature: 38, is_online: true });
+
+      await device.performPoll();
+
+      expect(mockTriggerCards.device_online.trigger).toHaveBeenCalledWith(device);
+      expect(device.isSpaOnline()).toBe(true);
+      expect(device.isAvailable()).toBe(true);
     });
 
     it('should NOT fire device_online if already online', async () => {

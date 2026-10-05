@@ -31,6 +31,22 @@ function parseHeatState(raw: unknown): number | null {
   return null;
 }
 
+/**
+ * Cloud `is_online`. Absent on some firmware — null keeps the old
+ * "HTTP success means reachable" rule. 0/false means the spa is switched off
+ * even though the cloud still returns the last shadow.
+ */
+function parseIsOnline(raw: unknown): boolean | null {
+  if (raw === undefined || raw === null || raw === '') return null;
+  if (raw === false || raw === 0 || raw === '0' || raw === 'false' || raw === 'offline') {
+    return false;
+  }
+  if (raw === true || raw === 1 || raw === '1' || raw === 'true' || raw === 'online') {
+    return true;
+  }
+  return null;
+}
+
 export function parseShadow(raw: RawShadowData): ParsedShadow {
   return {
     water_temperature: raw.water_temperature / 2, // Divide by 2 to get Celsius
@@ -44,5 +60,6 @@ export function parseShadow(raw: RawShadowData): ParsedShadow {
     ozone_state: asOn(raw.ozone_state),
     jet_state: asOn(raw.jet_state),
     fault: raw.fault, // Pass as string
+    is_online: parseIsOnline(raw.is_online),
   };
 }
