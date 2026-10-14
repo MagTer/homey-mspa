@@ -46,5 +46,11 @@
   "homepage": "https://github.com/MagTer/homey-mspa",
   "bugs": {
     "url": "https://github.com/MagTer/homey-mspa/issues"
+  },
+  "api": {
+    "validateCredentials": {
+      "method": "POST",
+      "path": "/validate-credentials"
+    }
   }
 }
