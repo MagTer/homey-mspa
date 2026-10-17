@@ -179,4 +179,26 @@ describe('parseShadow', () => {
     expect(isActivelyHeating(0)).toBe(false);
     expect(isActivelyHeating(null)).toBe(false);
   });
+
+  it('reads is_online and leaves it unknown when the cloud omits it', () => {
+    const raw = {
+      water_temperature: 76,
+      temperature_setting: 80,
+      heater_state: 1,
+      filter_state: 0,
+      bubble_state: 0,
+      bubble_level: 0,
+      uvc_state: 0,
+      ozone_state: 0,
+      jet_state: 0,
+      fault: '',
+    };
+
+    expect(parseShadow(raw).is_online).toBeNull();
+    expect(parseShadow({ ...raw, is_online: false }).is_online).toBe(false);
+    expect(parseShadow({ ...raw, is_online: 0 }).is_online).toBe(false);
+    expect(parseShadow({ ...raw, is_online: '0' }).is_online).toBe(false);
+    expect(parseShadow({ ...raw, is_online: true }).is_online).toBe(true);
+    expect(parseShadow({ ...raw, is_online: 1 }).is_online).toBe(true);
+  });
 });

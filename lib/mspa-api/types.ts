@@ -39,6 +39,8 @@ export interface RawShadowData {
   ozone_state: number;
   jet_state: number;
   fault: string;
+  /** 0/false when the spa is switched off. Missing on some firmware. */
+  is_online?: boolean | number | string;
 }
 
 /** Parsed shadow data with normalized types */
@@ -55,6 +57,8 @@ export interface ParsedShadow {
   ozone_state: boolean;
   jet_state: boolean;
   fault: string;
+  /** false = switched off. null = the cloud did not say. */
+  is_online: boolean | null;
 }
 
 /** Generic API response structure */

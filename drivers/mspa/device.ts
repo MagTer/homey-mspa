@@ -12,6 +12,8 @@ export default class MspaDevice extends Homey.Device {
   private isRapidPolling: boolean = false;
   private previousShadow: ParsedShadow | null = null;
   private wasAvailable: boolean = true;
+  /** Cloud says the spa is on. Not Homey availability — that blocks every flow card. */
+  private spaOnline: boolean = true;
   private triggerCards: Record<string, any> = {};
   /** Last successful cloud shadow fetch (ms). Widget uses this to avoid 15‑min stale UI. */
   private lastPollAt: number = 0;
@@ -80,6 +82,11 @@ export default class MspaDevice extends Homey.Device {
     this.startIdlePolling();
 
     this.log('M-Spa device initialized');
+  }
+
+  /** Flow condition "the spa is online". */
+  isSpaOnline(): boolean {
+    return this.spaOnline;
   }
 
   /**
@@ -643,16 +650,29 @@ export default class MspaDevice extends Homey.Device {
     try {
       const shadow = await apiClient.getThingShadow(deviceId, product_id);
       this.consecutiveFailures = 0;
+      const parsed = parseShadow(shadow);
 
-      if (!this.wasAvailable) {
+      // A successful shadow means Homey can run flow cards again. Power-off is
+      // tracked separately and must not leave the device unavailable.
+      if (this.homeyDeviceUnavailable()) {
+        await this.setAvailable();
+      }
+
+      // The cloud still answers with the last shadow after the spa is switched
+      // off. is_online false is that signal — one reading is enough. A failed
+      // request still needs 3 misses before the device goes unavailable.
+      if (parsed.is_online === false) {
+        await this.markSpaSwitchedOff();
+      } else if (!this.wasAvailable || !this.spaOnline) {
         this.log('Device recovered, firing device_online trigger');
         this.triggerCards.device_online.trigger(this)
           .catch((err: any) => this.error(`Failed to fire device_online trigger: ${err.message}`));
         this.wasAvailable = true;
+        this.spaOnline = true;
         await this.setAvailable();
       }
 
-      await this.syncFromShadow(parseShadow(shadow));
+      await this.syncFromShadow(parsed);
       this.lastPollAt = Date.now();
       this.log('Poll successful');
       return true;
@@ -664,6 +684,34 @@ export default class MspaDevice extends Homey.Device {
   }
 
   /**
+   * Spa reports switched off. The cloud request itself succeeded.
+   * Keep the Homey device available: unavailable makes every flow card fail
+   * with "device not available" before the online condition can return false.
+   */
+  private async markSpaSwitchedOff(): Promise<void> {
+    if (!this.spaOnline) return;
+    this.spaOnline = false;
+    this.log('Spa reports switched off, firing device_offline trigger');
+    this.triggerCards.device_offline.trigger(this)
+      .catch((err: any) => this.error(`Failed to fire device_offline trigger: ${err.message}`));
+  }
+
+  /** True when Homey itself has marked the device unavailable. */
+  private homeyDeviceUnavailable(): boolean {
+    const device = this as unknown as {
+      getAvailable?: () => boolean;
+      isAvailable?: () => boolean;
+    };
+    if (typeof device.getAvailable === 'function') {
+      return device.getAvailable() === false;
+    }
+    if (typeof device.isAvailable === 'function') {
+      return device.isAvailable() === false;
+    }
+    return false;
+  }
+
+  /**
    * Handle API errors and update availability
    */
   handleApiError() {
@@ -671,6 +719,7 @@ export default class MspaDevice extends Homey.Device {
     this.log(`API failure #${this.consecutiveFailures}`);
 
     if (this.consecutiveFailures >= 3) {
+      this.spaOnline = false;
       if (this.wasAvailable) {
         this.log('Device unreachable, firing device_offline trigger');
         this.triggerCards.device_offline.trigger(this)
