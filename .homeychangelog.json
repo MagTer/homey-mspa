@@ -28,5 +28,8 @@
   },
   "1.0.8": {
     "en": "The dashboard widget now keeps up with the spa: while the panel is open, buttons pressed on the spa itself show up within about half a minute instead of waiting for the next 15-minute update. Fix: spas not recognised by series are now identified from their model code and get the right controls instead of a generic set — Frame models such as the Oslo no longer show a Jets button for hardware they do not have. Fix: bubbles show as off when the spa reports them off, even if it still reports a leftover speed."
+  },
+  "1.1.0": {
+    "en": "New: an \"Update values\" action card fetches the latest temperatures and switch states from the cloud on demand. Change: switching the spa off now counts as offline. \"The spa is online\" turns false on the next reading, \"The spa went offline\" and \"The spa came online\" fire when it is switched off and on, and other Flow cards keep working while it is off. Fix: saving your M-Spa login in the app settings works again — it failed with \"Cannot POST … validate-credentials\"."
   }
 }
