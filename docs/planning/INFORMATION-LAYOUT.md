@@ -2,7 +2,7 @@
 
 **Status 2026-10-29: PLAN, unsigned. Nothing below is built.** Origin: operator, 2026-10-29
 — *"README i rooten är främst för människor, agents.md är projektspecifika tillägg."* The
-rule is agent-config `proposals/2026-10-29-project-information-layout.md` (U1 there,
+rule is agent-config `docs/planning/2026-10-29-project-information-layout.md` (U1 there,
 unsigned). **Runs only after that U1 is signed.**
 
 ## 1. What is here, read 2026-10-29 at `aec5781`
