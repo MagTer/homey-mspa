@@ -34,3 +34,6 @@ tmp/
 
 # Local scratch files
 *.bak
+
+# Agent session position file (local to this checkout)
+.agent-state.md

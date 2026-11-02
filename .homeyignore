@@ -1,0 +1,4 @@
+# Agent instructions are for development, not for the Homey app bundle.
+# CLAUDE.md shipped before this file existed and still does, so the bundle
+# is unchanged by the AGENTS.md move (2026-11-02).
+AGENTS.md
