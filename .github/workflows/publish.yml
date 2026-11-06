@@ -20,9 +20,9 @@ jobs:
     name: Publish to Homey App Store
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -69,13 +69,13 @@ jobs:
           echo "Publishing ${APP_VERSION}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Validate
-        uses: athombv/github-action-homey-app-validate@master
+        uses: athombv/github-action-homey-app-validate@0f3b42c15d26aab79d7c48cde4d2805524da910e # master
         with:
           level: publish
 
       - name: Publish
         id: publish
-        uses: athombv/github-action-homey-app-publish@master
+        uses: athombv/github-action-homey-app-publish@0642b483f1eb66fbceb0c91b73df35d45fd2f3db # master
         with:
           personal_access_token: ${{ secrets.HOMEY_PAT }}
 
