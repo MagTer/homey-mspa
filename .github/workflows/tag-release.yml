@@ -1,0 +1,36 @@
+name: Tag release
+
+# Tags a version that reached main through the Version workflow's PR, and makes the
+# GitHub release. Pushing the v* tag is what starts Publish, which is why this pushes
+# with RELEASE_TOKEN: a tag pushed with the default GITHUB_TOKEN starts no workflow.
+
+on:
+  push:
+    branches: [main]
+    paths: ['.homeycompose/app.json']
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Tag a version that has no tag yet
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          version="$(node -p "require('./.homeycompose/app.json').version")"
+          tag="v$version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "$tag exists; the file changed without a release"
+            exit 0
+          fi
+          notes="$(node -p "require('./.homeychangelog.json')[process.argv[1]].en" "$version")"
+          git tag "$tag"
+          git push origin "$tag"
+          gh release create "$tag" --title "$tag" --notes "$notes"

@@ -2,9 +2,9 @@ name: Publish
 
 # Publishes to the Homey App Store when a v* tag is pushed, or on demand.
 #
-# The normal path is the Version workflow, which bumps, tags and pushes for you.
-# Note that tags pushed by GITHUB_TOKEN do not trigger this workflow — see the
-# RELEASE_TOKEN note in version.yml. A tag you push by hand always triggers it.
+# The normal path is the Version workflow, whose merged PR tag-release.yml tags.
+# Note that tags pushed by GITHUB_TOKEN do not trigger this workflow, which is why
+# tag-release.yml pushes with RELEASE_TOKEN. A tag you push by hand always triggers it.
 #
 # Required secret: HOMEY_PAT — the app owner's Personal Access Token from
 # https://tools.developer.homey.app/me

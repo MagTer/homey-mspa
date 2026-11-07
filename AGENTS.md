@@ -77,8 +77,9 @@ and `temperature_setting` by 2 to get Celsius. Boolean fields go through
 `asOn()` because the API is inconsistent about `1` vs `true` vs `"1"`.
 
 **Version and changelog are workflow-owned.** `.homeycompose/app.json`,
-`package.json` and `.homeychangelog.json` are written by the Version workflow.
-Do not bump them in a change.
+`package.json` and `.homeychangelog.json` are written by the Version workflow,
+which opens a release PR; merging it runs `tag-release.yml`, whose tag starts
+Publish. Do not bump them in a change.
 
 **English only**, including comments and log messages. User-facing text goes
 through `locales/`, the Compose `title`/`hint` objects, or the widget's `LABELS`
