@@ -4,3 +4,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # Patch and minor only. Major bumps are a deliberate change: the first run opened 33
+    # at once, and a bot's PR meets the review as a failure (operator, 2026-11-07).
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
