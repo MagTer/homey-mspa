@@ -92,8 +92,8 @@ verify credentials from the settings page before they are saved.
 ### Releases
 Pushes and pull requests run typecheck, unit tests and `homey app validate`.
 Releases are cut from the **Version** workflow in GitHub Actions, which bumps
-the version, writes the changelog and pushes a `v*` tag; the tag triggers
-**Publish**, which publishes to the Homey App Store. Do not edit the version or
+the version, writes the changelog and opens a pull request. Merging it tags the
+commit, and the tag triggers **Publish**, which publishes to the Homey App Store. Do not edit the version or
 `.homeychangelog.json` by hand.
 
 ## Disclaimer

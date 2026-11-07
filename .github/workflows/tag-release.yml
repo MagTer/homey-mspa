@@ -8,6 +8,8 @@ on:
   push:
     branches: [main]
     paths: ['.homeycompose/app.json']
+  # By hand, when a run failed: it does what is still missing.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,17 +22,19 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Tag a version that has no tag yet
+      - name: Tag and release a version that lacks either
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           version="$(node -p "require('./.homeycompose/app.json').version")"
           tag="v$version"
-          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
-            echo "$tag exists; the file changed without a release"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag is already released"
             exit 0
           fi
           notes="$(node -p "require('./.homeychangelog.json')[process.argv[1]].en" "$version")"
-          git tag "$tag"
-          git push origin "$tag"
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            git tag "$tag"
+            git push origin "$tag"
+          fi
           gh release create "$tag" --title "$tag" --notes "$notes"

@@ -27,11 +27,11 @@ on:
         required: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   version:
-    name: Bump version and tag
+    name: Bump version and open the release PR
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -73,9 +73,13 @@ jobs:
           git switch -c "release/v$VERSION"
           git add -A
           git commit -m "chore(release): v$VERSION"
-          git push origin "release/v$VERSION"
-          gh pr create --base main --head "release/v$VERSION" \
-            --title "chore(release): v$VERSION" --body "$NOTES"
+          # This branch is this workflow's own. Forcing it is what lets a failed or
+          # closed attempt at the same version run again.
+          git push --force origin "release/v$VERSION"
+          if ! gh pr view "release/v$VERSION" --json state --jq .state | grep -q OPEN; then
+            gh pr create --base main --head "release/v$VERSION" \
+              --title "chore(release): v$VERSION" --body "$NOTES"
+          fi
 
       - name: Summary
         env:

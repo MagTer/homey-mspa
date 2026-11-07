@@ -150,7 +150,8 @@ reformat unrelated files, change app metadata, or bump the version.
 
 **Do not edit `version` or `.homeychangelog.json` by hand.** Releases are cut by
 the `Version` workflow in GitHub Actions, which bumps the version, writes the
-changelog entry, tags the commit, and triggers publishing to the Homey App Store.
+changelog entry and opens a pull request. Merging it tags the commit and triggers
+publishing to the Homey App Store.
 Hand-written version bumps in a pull request will be asked to be removed.
 
 Describe your change in the pull request instead; the changelog text is written
