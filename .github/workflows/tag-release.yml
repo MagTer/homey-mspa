@@ -26,6 +26,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
+          # A dispatch can name any ref, and a release branch holds an unmerged bump.
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::only main is tagged, and this run is on $GITHUB_REF"
+            exit 1
+          fi
           version="$(node -p "require('./.homeycompose/app.json').version")"
           tag="v$version"
           if gh release view "$tag" > /dev/null 2>&1; then

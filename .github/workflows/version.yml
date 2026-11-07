@@ -42,7 +42,7 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # Updates .homeycompose/app.json and .homeychangelog.json
+      # Updates .homeycompose/app.json, the root app.json and .homeychangelog.json
       - name: Update Homey app version
         id: version
         uses: athombv/github-action-homey-app-version@3342f092b437550e78074797b52fac6467a456e1 # master
