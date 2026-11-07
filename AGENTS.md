@@ -40,6 +40,13 @@ There is no linter and no formatter. Match the surrounding style.
 | `widgets/mspa-panel/` | Dashboard widget: `api.js` backend, `public/index.html` frontend |
 | `test/` | Vitest suites; the Homey SDK stub is the `vi.mock` in `test/setup.ts` — the root `__mocks__/homey.ts` is not wired to anything |
 
+## How a change reaches `main`
+
+Through a pull request. Typecheck, unit tests, `homey app validate` and the model
+review run on it, and a draft is not reviewed until it is marked ready. Release
+goes the same way; see the version entry below. Tags are made by
+`tag-release.yml` after a merge, so do not tag by hand.
+
 ## Things that will bite you
 
 **`app.json` is generated but tracked.** Edit `.homeycompose/**` and
