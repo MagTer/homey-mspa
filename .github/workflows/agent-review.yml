@@ -46,8 +46,10 @@
 # model reads the diff, and a bump's diff is a version, a URL and a hash: the code that
 # changed is in the npm tarball, which the model never sees (PR #28, 2026-11-07). The
 # claude-code-action also refuses a bot actor outright, so a bump could not pass at all
-# (run 42317656369). What does guard a bump is the
-# required test check, where `npm ci` verifies every integrity hash. The exemption
+# (run 42317656369). So NOTHING here judges whether a new version is safe: the required
+# tests catch a bump that breaks the build, and `npm ci` proves only that the download
+# matches the hash the same PR wrote. That judgement rests with whoever merges, as it
+# did before (noted by the fifth model review of PR #33, run 42517028758). The exemption
 # holds only while ALL of these do, judged on the base and head SHAs of this event:
 # - the PR and this run are Dependabot's, and the PR's head is still that SHA;
 # - every commit names Dependabot as author and is committed and signed by GitHub
