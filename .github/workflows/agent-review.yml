@@ -48,17 +48,25 @@
 # claude-code-action also refuses a bot actor outright, so a bump could not pass at all
 # (run 42317656369). What does guard a bump is the
 # required test check, where `npm ci` verifies every integrity hash. The exemption
-# holds only while ALL of these do: the PR and this run are Dependabot's, the head has
-# not moved, every commit names Dependabot as author and is committed and signed by
-# GitHub (web-flow), the PR modifies only package.json and package-lock.json,
-# package.json changes only the versions of dependencies it already has, and every
-# lockfile entry comes from registry.npmjs.org with an integrity hash. The actor is the
-# check that carries the weight: author.login comes from an email anyone can write
-# (the model review of PR #33 found this), and a push by anyone else starts a run with
-# them as actor, which goes to the model.
+# holds only while ALL of these do, judged on the base and head SHAs of this event:
+# - the PR and this run are Dependabot's, and the PR's head is still that SHA;
+# - every commit names Dependabot as author and is committed and signed by GitHub
+#   (web-flow);
+# - only package.json and package-lock.json are modified;
+# - package.json keeps the same dependencies and each specifier stays as it was,
+#   becomes a plain semver range, or keeps its npm: alias target with a plain range,
+#   so no alias, git, file or URL specifier can swap a package in;
+# - the lockfile is version 2 or later and every entry in its packages map comes
+#   from registry.npmjs.org with an integrity hash.
+# The actor is the check that carries the weight: author.login comes from an email
+# anyone can write, and a push by anyone else starts a run with them as actor, which
+# goes to the model. The other conditions are depth behind it; the model reviews of
+# PR #33 (runs 42473500291, 42473716199) found where the first versions were weaker
+# than this header claimed.
 # Anything else goes to the model, which then fails on the bot actor; a Dependabot PR
 # to a workflow (github-actions) must stay there. The steps it skips are skipped by a
-# step-level `if:`, which still ends the job green. Decided by the operator 2026-11-08.
+# step-level `if:`, which GitHub documents as leaving the job green (not yet seen on a
+# Dependabot run here). Decided by the operator 2026-11-08.
 name: review
 
 on:
@@ -136,29 +144,51 @@ jobs:
           [ "$GITHUB_ACTOR" = "$bot" ] || review "this run was started by $GITHUB_ACTOR"
           current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
           [ "$current" = "$HEAD_SHA" ] || review "the branch moved during this run"
-          others=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" \
-            --jq ".[] | select(.author.login != \"$bot\" or .committer.login != \"web-flow\" or .commit.verification.verified != true) | .sha")
-          [ -z "$others" ] || review "a commit not authored by Dependabot and signed by GitHub: $others"
-          outside=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" \
-            --jq '.[] | select(.status != "modified" or (.filename != "package.json" and .filename != "package-lock.json")) | .filename')
-          [ -z "$outside" ] || review "it touches more than package.json and package-lock.json: $outside"
+          # Commits and files come from comparing the two SHAs this run judges, not from
+          # the PR, whose head can move between calls. compare lists at most 250 commits
+          # and 300 files, so a longer list goes to the model rather than half-read.
           mkdir -p .pr-review/bump
+          gh api "repos/$GITHUB_REPOSITORY/compare/$BASE_SHA...$HEAD_SHA" > .pr-review/bump/compare.json
           raw() { gh api "repos/$GITHUB_REPOSITORY/contents/$1?ref=$2" -H 'Accept: application/vnd.github.raw' > "$3"; }
           raw package.json "$BASE_SHA" .pr-review/bump/base.json
           raw package.json "$HEAD_SHA" .pr-review/bump/head.json
           raw package-lock.json "$HEAD_SHA" .pr-review/bump/lock.json
-          reason=$(node -e '
+          reason=$(BOT="$bot" node -e '
             const fs = require("fs");
             const read = (f) => JSON.parse(fs.readFileSync(".pr-review/bump/" + f, "utf8"));
+            const say = (why) => { console.log(why); process.exit(0); };
+            const cmp = read("compare.json");
+            if (!Array.isArray(cmp.commits) || cmp.commits.length === 0 || cmp.commits.length !== cmp.total_commits) say("its commits could not all be read");
+            const foreign = cmp.commits.filter((c) => !(c.author && c.author.login === process.env.BOT && c.committer && c.committer.login === "web-flow" && c.commit.verification.verified === true));
+            if (foreign.length) say("a commit not authored by Dependabot and signed by GitHub: " + foreign.map((c) => c.sha).join(" "));
+            const files = cmp.files || [];
+            if (files.length === 0 || files.length >= 300) say("its files could not all be read");
+            const outside = files.filter((f) => f.status !== "modified" || !["package.json", "package-lock.json"].includes(f.filename));
+            if (outside.length) say("it touches more than package.json and package-lock.json: " + outside.map((f) => f.filename).join(" "));
             const base = read("base.json"), head = read("head.json");
-            const names = (j) => JSON.stringify(["dependencies", "devDependencies"].map((k) => Object.keys(j[k] || {}).sort()));
-            if (names(base) !== names(head)) { console.log("package.json adds or removes a dependency"); process.exit(0); }
-            const rest = (j) => { delete j.dependencies; delete j.devDependencies; return JSON.stringify(j); };
-            if (rest(base) !== rest(head)) { console.log("package.json changes more than dependency versions"); process.exit(0); }
-            const off = Object.entries(read("lock.json").packages || {})
-              .filter(([k, v]) => k && !v.link && !(String(v.resolved || "").startsWith("https://registry.npmjs.org/") && v.integrity))
+            const lists = ["dependencies", "devDependencies"];
+            const names = (j) => JSON.stringify(lists.map((k) => Object.keys(j[k] || {}).sort()));
+            if (names(base) !== names(head)) say("package.json adds or removes a dependency");
+            // A value may stay as it was, become a plain semver range, or keep the same
+            // npm: alias target with a plain range. Anything else (another alias target,
+            // git, github:, file:, a URL, a tag) can swap the package and goes to the model.
+            const range = /^[~^]?\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$/;
+            const alias = (v) => /^npm:(.+)@([^@]+)$/.exec(v);
+            for (const k of lists) for (const [n, v] of Object.entries(head[k] || {})) {
+              const was = base[k][n];
+              if (v === was || range.test(v)) continue;
+              const a = alias(v), b = alias(String(was));
+              if (a && b && a[1] === b[1] && range.test(a[2])) continue;
+              say("package.json gives " + n + " a specifier that is not a plain version: " + v);
+            }
+            const rest = (j) => { for (const k of lists) delete j[k]; return JSON.stringify(j); };
+            if (rest(base) !== rest(head)) say("package.json changes more than dependency versions");
+            const lock = read("lock.json");
+            if (!(lock.lockfileVersion >= 2) || !lock.packages || typeof lock.packages !== "object") say("the lockfile has no packages map to check");
+            const off = Object.entries(lock.packages)
+              .filter(([k, v]) => k && !(String(v.resolved || "").startsWith("https://registry.npmjs.org/") && v.integrity))
               .map(([k]) => k);
-            if (off.length) console.log("the lockfile has entries without a registry.npmjs.org source and an integrity hash: " + off.join(" "));
+            if (off.length) say("the lockfile has entries without a registry.npmjs.org source and an integrity hash: " + off.join(" "));
           ')
           [ -z "$reason" ] || review "$reason"
           echo "exempt=true" >> "$GITHUB_OUTPUT"
