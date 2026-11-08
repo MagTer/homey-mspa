@@ -198,7 +198,13 @@ jobs:
             const declared = (dep) => { for (const k of lists) { const a = alias(String((head[k] || {})[dep])); if (a) return a[1]; } return null; };
             const off = Object.entries(lock.packages).filter(([k, v]) => {
               if (!k) return false;
+              // A key outside node_modules/ (a workspace or folder entry) names no package,
+              // and lastIndexOf would then slice a meaningless name out of it (sixth model
+              // review of PR #33, run 42517276841). Path and name must be npm package names.
+              const npmName = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/;
+              if (!k.startsWith("node_modules/")) return true;
               const path = k.slice(k.lastIndexOf("node_modules/") + "node_modules/".length);
+              if (!npmName.test(path) || (v.name !== undefined && !npmName.test(String(v.name)))) return true;
               if (v.name !== undefined && v.name !== path && !(k === "node_modules/" + path && declared(path) === v.name)) return true;
               const name = v.name === undefined ? path : v.name;
               // The whole URL is pinned, not a prefix: npm parses it as a WHATWG URL,
