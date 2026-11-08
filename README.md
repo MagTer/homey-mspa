@@ -1,3 +1,9 @@
+---
+purpose: A Homey app for M-Spa hot tubs, reading water temperature and faults and driving the heater, filter, bubbles, jets, ozone and UVC.
+owns: [the M-Spa Homey app, its Flow cards and dashboard widget]
+does_not_own: []
+depends_on: []
+---
 # M-Spa for Homey
 
 A Homey app for M-Spa hot tubs. It reads water temperature and fault state,
