@@ -56,14 +56,17 @@
 # - package.json keeps the same dependencies and each specifier stays as it was,
 #   becomes a plain semver range, or keeps its npm: alias target with a plain range,
 #   so no alias, git, file or URL specifier can swap a package in;
-# - the lockfile is version 2 or later and every entry in its packages map comes
-#   from registry.npmjs.org with an integrity hash.
+# - the lockfile is version 2 or later and every entry in its packages map fetches
+#   the package its path names (or the alias package.json declares for it) from
+#   registry.npmjs.org, with an integrity hash.
 # The actor is the check that carries the weight: author.login comes from an email
 # anyone can write, and a push by anyone else starts a run with them as actor, which
 # goes to the model. The other conditions are depth behind it; the model reviews of
-# PR #33 (runs 42473500291, 42473716199) found where the first versions were weaker
-# than this header claimed.
-# Anything else goes to the model, which then fails on the bot actor; a Dependabot PR
+# PR #33 (runs 42473500291, 42473716199, 42474202060) found where earlier versions
+# were weaker than this header claimed.
+# A PR that meets a condition's refusal goes to the model, which then fails on the
+# bot actor; an API call or parse that errors fails the job outright, without the
+# model. Either way it does not pass. A Dependabot PR
 # to a workflow (github-actions) must stay there. The steps it skips are skipped by a
 # step-level `if:`, which GitHub documents as leaving the job green (not yet seen on a
 # Dependabot run here). Decided by the operator 2026-11-08.
@@ -181,14 +184,23 @@ jobs:
               if (a && b && a[1] === b[1] && range.test(a[2])) continue;
               say("package.json gives " + n + " a specifier that is not a plain version: " + v);
             }
-            const rest = (j) => { for (const k of lists) delete j[k]; return JSON.stringify(j); };
+            const rest = (j) => { const c = { ...j }; for (const k of lists) delete c[k]; return JSON.stringify(c); };
             if (rest(base) !== rest(head)) say("package.json changes more than dependency versions");
             const lock = read("lock.json");
             if (!(lock.lockfileVersion >= 2) || !lock.packages || typeof lock.packages !== "object") say("the lockfile has no packages map to check");
-            const off = Object.entries(lock.packages)
-              .filter(([k, v]) => k && !(String(v.resolved || "").startsWith("https://registry.npmjs.org/") && v.integrity))
-              .map(([k]) => k);
-            if (off.length) say("the lockfile has entries without a registry.npmjs.org source and an integrity hash: " + off.join(" "));
+            // An entry must fetch the package its path names, so it cannot point at
+            // another package tarball on the same registry. An entry that names a
+            // different package (an npm: alias) is accepted only where package.json
+            // declares that very alias for a direct dependency.
+            const declared = (dep) => { for (const k of lists) { const a = alias(String((head[k] || {})[dep])); if (a) return a[1]; } return null; };
+            const off = Object.entries(lock.packages).filter(([k, v]) => {
+              if (!k) return false;
+              const path = k.slice(k.lastIndexOf("node_modules/") + "node_modules/".length);
+              if (v.name !== undefined && v.name !== path && !(k === "node_modules/" + path && declared(path) === v.name)) return true;
+              const name = v.name === undefined ? path : v.name;
+              return !(String(v.resolved || "").startsWith("https://registry.npmjs.org/" + name + "/-/") && v.integrity);
+            }).map(([k]) => k);
+            if (off.length) say("the lockfile has entries that do not fetch their own package from registry.npmjs.org with an integrity hash: " + off.join(" "));
           ')
           [ -z "$reason" ] || review "$reason"
           echo "exempt=true" >> "$GITHUB_OUTPUT"
