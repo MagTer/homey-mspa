@@ -43,7 +43,10 @@ There is no linter and no formatter. Match the surrounding style.
 ## How a change reaches `main`
 
 Through a pull request. Typecheck, unit tests, `homey app validate` and the model
-review run on it, and a draft is not reviewed until it is marked ready. Release
+review run on it, and a draft is not reviewed until it is marked ready. A
+Dependabot PR that only bumps npm packages passes `review` without the model; the
+conditions, and why, are in the header of `.github/workflows/agent-review.yml`,
+which in this departs from agent-config's template. Release
 goes the same way; see the version entry below. Tags are made by
 `tag-release.yml` after a merge, so do not tag by hand.
 

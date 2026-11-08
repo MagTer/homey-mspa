@@ -39,6 +39,22 @@
 # diff that talks the model into PASS passes: that limit is accepted in §4 of
 # docs/planning/2026-11-06-github-pro-baseline.md, and required tests are what stand
 # beside it.
+#
+# A DEPENDABOT BUMP OF THE NPM MANIFEST PASSES WITHOUT THE MODEL. This is where the
+# project's copy departs from agent-config's templates/agent-review.yml; carry it over
+# when the template changes, or take the template's version if it gains its own. The
+# model reads the diff, and a bump's diff is a version, a URL and a hash: the code that
+# changed is in the npm tarball, which the model never sees (PR #28, 2026-11-07). The
+# claude-code-action also refuses a bot actor outright, so a bump could not pass at all
+# (run 42317656369). What does guard a bump is the
+# required test check, where `npm ci` verifies every integrity hash. The exemption
+# holds only while ALL of these do: the PR and this run are Dependabot's, every commit
+# is Dependabot's and verified, the head has not moved, the PR modifies only
+# package.json and package-lock.json, package.json differs only in its dependency
+# lists, and every lockfile entry comes from registry.npmjs.org with an integrity hash.
+# Anything else goes to the model, which then fails on the bot actor; a Dependabot PR
+# to a workflow (github-actions) must stay there. The steps it skips are skipped by a
+# step-level `if:`, which still ends the job green. Decided by the operator 2026-11-08.
 name: review
 
 on:
@@ -100,8 +116,50 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.title + "\n\n" + (.body // "")' > .pr-review/pr.md
           gh api "repos/$GITHUB_REPOSITORY/rules/branches/$DEFAULT_REF" > .pr-review/rules.json
 
+      - name: pass a Dependabot dependency bump without the model
+        id: bump
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          bot='dependabot[bot]'
+          review() { echo "the model reviews this PR: $1"; echo "exempt=false" >> "$GITHUB_OUTPUT"; exit 0; }
+          [ "$PR_AUTHOR" = "$bot" ] || review "it is not Dependabot's"
+          [ "$GITHUB_ACTOR" = "$bot" ] || review "this run was started by $GITHUB_ACTOR"
+          current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
+          [ "$current" = "$HEAD_SHA" ] || review "the branch moved during this run"
+          others=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" \
+            --jq ".[] | select(.author.login != \"$bot\" or .commit.verification.verified != true) | .sha")
+          [ -z "$others" ] || review "a commit that is not Dependabot's, verified: $others"
+          outside=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" \
+            --jq '.[] | select(.status != "modified" or (.filename != "package.json" and .filename != "package-lock.json")) | .filename')
+          [ -z "$outside" ] || review "it touches more than package.json and package-lock.json: $outside"
+          mkdir -p .pr-review/bump
+          raw() { gh api "repos/$GITHUB_REPOSITORY/contents/$1?ref=$2" -H 'Accept: application/vnd.github.raw' > "$3"; }
+          raw package.json "$BASE_SHA" .pr-review/bump/base.json
+          raw package.json "$HEAD_SHA" .pr-review/bump/head.json
+          raw package-lock.json "$HEAD_SHA" .pr-review/bump/lock.json
+          reason=$(node -e '
+            const fs = require("fs");
+            const read = (f) => JSON.parse(fs.readFileSync(".pr-review/bump/" + f, "utf8"));
+            const rest = (j) => { delete j.dependencies; delete j.devDependencies; return JSON.stringify(j); };
+            if (rest(read("base.json")) !== rest(read("head.json"))) { console.log("package.json changes more than its dependency lists"); process.exit(0); }
+            const off = Object.entries(read("lock.json").packages || {})
+              .filter(([k, v]) => k && !v.link && !(String(v.resolved || "").startsWith("https://registry.npmjs.org/") && v.integrity))
+              .map(([k]) => k);
+            if (off.length) console.log("the lockfile has entries without a registry.npmjs.org source and an integrity hash: " + off.join(" "));
+          ')
+          [ -z "$reason" ] || review "$reason"
+          echo "exempt=true" >> "$GITHUB_OUTPUT"
+          echo "PASS without the model: a Dependabot bump of package.json/package-lock.json only, every source on registry.npmjs.org with an integrity hash" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: review
         id: review
+        if: steps.bump.outputs.exempt != 'true'
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -129,6 +187,7 @@ jobs:
             --json-schema '{"type":"object","properties":{"first_diff_line":{"type":"string"},"findings":{"type":"string"},"verdict":{"type":"string","enum":["PASS","FAIL"]}},"required":["first_diff_line","findings","verdict"]}'
 
       - name: the verdict decides
+        if: steps.bump.outputs.exempt != 'true'
         env:
           OUTPUT: ${{ steps.review.outputs.structured_output }}
         run: |
