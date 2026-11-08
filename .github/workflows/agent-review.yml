@@ -48,10 +48,14 @@
 # claude-code-action also refuses a bot actor outright, so a bump could not pass at all
 # (run 42317656369). What does guard a bump is the
 # required test check, where `npm ci` verifies every integrity hash. The exemption
-# holds only while ALL of these do: the PR and this run are Dependabot's, every commit
-# is Dependabot's and verified, the head has not moved, the PR modifies only
-# package.json and package-lock.json, package.json differs only in its dependency
-# lists, and every lockfile entry comes from registry.npmjs.org with an integrity hash.
+# holds only while ALL of these do: the PR and this run are Dependabot's, the head has
+# not moved, every commit names Dependabot as author and is committed and signed by
+# GitHub (web-flow), the PR modifies only package.json and package-lock.json,
+# package.json changes only the versions of dependencies it already has, and every
+# lockfile entry comes from registry.npmjs.org with an integrity hash. The actor is the
+# check that carries the weight: author.login comes from an email anyone can write
+# (the model review of PR #33 found this), and a push by anyone else starts a run with
+# them as actor, which goes to the model.
 # Anything else goes to the model, which then fails on the bot actor; a Dependabot PR
 # to a workflow (github-actions) must stay there. The steps it skips are skipped by a
 # step-level `if:`, which still ends the job green. Decided by the operator 2026-11-08.
@@ -133,8 +137,8 @@ jobs:
           current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
           [ "$current" = "$HEAD_SHA" ] || review "the branch moved during this run"
           others=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" \
-            --jq ".[] | select(.author.login != \"$bot\" or .commit.verification.verified != true) | .sha")
-          [ -z "$others" ] || review "a commit that is not Dependabot's, verified: $others"
+            --jq ".[] | select(.author.login != \"$bot\" or .committer.login != \"web-flow\" or .commit.verification.verified != true) | .sha")
+          [ -z "$others" ] || review "a commit not authored by Dependabot and signed by GitHub: $others"
           outside=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" \
             --jq '.[] | select(.status != "modified" or (.filename != "package.json" and .filename != "package-lock.json")) | .filename')
           [ -z "$outside" ] || review "it touches more than package.json and package-lock.json: $outside"
@@ -146,8 +150,11 @@ jobs:
           reason=$(node -e '
             const fs = require("fs");
             const read = (f) => JSON.parse(fs.readFileSync(".pr-review/bump/" + f, "utf8"));
+            const base = read("base.json"), head = read("head.json");
+            const names = (j) => JSON.stringify(["dependencies", "devDependencies"].map((k) => Object.keys(j[k] || {}).sort()));
+            if (names(base) !== names(head)) { console.log("package.json adds or removes a dependency"); process.exit(0); }
             const rest = (j) => { delete j.dependencies; delete j.devDependencies; return JSON.stringify(j); };
-            if (rest(read("base.json")) !== rest(read("head.json"))) { console.log("package.json changes more than its dependency lists"); process.exit(0); }
+            if (rest(base) !== rest(head)) { console.log("package.json changes more than dependency versions"); process.exit(0); }
             const off = Object.entries(read("lock.json").packages || {})
               .filter(([k, v]) => k && !v.link && !(String(v.resolved || "").startsWith("https://registry.npmjs.org/") && v.integrity))
               .map(([k]) => k);
