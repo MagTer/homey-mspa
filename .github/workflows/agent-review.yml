@@ -58,11 +58,12 @@
 #   so no alias, git, file or URL specifier can swap a package in;
 # - the lockfile is version 2 or later and every entry in its packages map fetches
 #   the package its path names (or the alias package.json declares for it) from
-#   registry.npmjs.org, with an integrity hash.
+#   registry.npmjs.org at exactly /<name>/-/<basename>-<version>.tgz, with a sha512
+#   integrity hash.
 # The actor is the check that carries the weight: author.login comes from an email
 # anyone can write, and a push by anyone else starts a run with them as actor, which
 # goes to the model. The other conditions are depth behind it; the model reviews of
-# PR #33 (runs 42473500291, 42473716199, 42474202060) found where earlier versions
+# PR #33 (runs 42473500291, 42473716199, 42474202060, 42516644937) found where earlier versions
 # were weaker than this header claimed.
 # A PR that meets a condition's refusal goes to the model, which then fails on the
 # bot actor; an API call or parse that errors fails the job outright, without the
@@ -198,7 +199,16 @@ jobs:
               const path = k.slice(k.lastIndexOf("node_modules/") + "node_modules/".length);
               if (v.name !== undefined && v.name !== path && !(k === "node_modules/" + path && declared(path) === v.name)) return true;
               const name = v.name === undefined ? path : v.name;
-              return !(String(v.resolved || "").startsWith("https://registry.npmjs.org/" + name + "/-/") && v.integrity);
+              // The whole URL is pinned, not a prefix: npm parses it as a WHATWG URL,
+              // which resolves ../ and %2e%2e, so a prefix could still lead elsewhere
+              // (fourth model review of PR #33, run 42516644937). All 221 entries of
+              // this lockfile had this exact shape and a sha512 on 2026-11-08.
+              const raw = String(v.resolved || "");
+              let url;
+              try { url = new URL(raw); } catch { return true; }
+              const file = "/" + name + "/-/" + name.slice(name.lastIndexOf("/") + 1) + "-" + v.version + ".tgz";
+              return !(url.origin === "https://registry.npmjs.org" && !url.search && !url.hash && !/%|\.\./.test(raw)
+                && url.pathname === file && /^sha512-[A-Za-z0-9+/]+={0,2}$/.test(String(v.integrity)));
             }).map(([k]) => k);
             if (off.length) say("the lockfile has entries that do not fetch their own package from registry.npmjs.org with an integrity hash: " + off.join(" "));
           ')
