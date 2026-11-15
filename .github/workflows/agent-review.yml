@@ -39,6 +39,40 @@
 # diff that talks the model into PASS passes: that limit is accepted in §4 of
 # docs/planning/2026-11-06-github-pro-baseline.md, and required tests are what stand
 # beside it.
+#
+# A DEPENDABOT BUMP OF THE NPM MANIFEST PASSES WITHOUT THE MODEL. This is where the
+# project's copy departs from agent-config's templates/agent-review.yml; carry it over
+# when the template changes, or take the template's version if it gains its own. The
+# model reads the diff, and a bump's diff is a version, a URL and a hash: the code that
+# changed is in the npm tarball, which the model never sees (PR #28, 2026-11-07). The
+# claude-code-action also refuses a bot actor outright, so a bump could not pass at all
+# (run 42317656369). So NOTHING here judges whether a new version is safe: the required
+# tests catch a bump that breaks the build, and `npm ci` proves only that the download
+# matches the hash the same PR wrote. That judgement rests with whoever merges, as it
+# did before (noted by the fifth model review of PR #33, run 42517028758). The exemption
+# holds only while ALL of these do, judged on the base and head SHAs of this event:
+# - the PR and this run are Dependabot's, and the PR's head is still that SHA;
+# - every commit names Dependabot as author and is committed and signed by GitHub
+#   (web-flow);
+# - only package.json and package-lock.json are modified;
+# - package.json keeps the same dependencies and each specifier stays as it was,
+#   becomes a plain semver range, or keeps its npm: alias target with a plain range,
+#   so no alias, git, file or URL specifier can swap a package in;
+# - the lockfile is version 2 or later and every entry in its packages map fetches
+#   the package its path names (or the alias package.json declares for it) from
+#   registry.npmjs.org at exactly /<name>/-/<basename>-<version>.tgz, with a sha512
+#   integrity hash.
+# The actor is the check that carries the weight: author.login comes from an email
+# anyone can write, and a push by anyone else starts a run with them as actor, which
+# goes to the model. The other conditions are depth behind it; the model reviews of
+# PR #33 (runs 42473500291, 42473716199, 42474202060, 42516644937) found where earlier versions
+# were weaker than this header claimed.
+# A PR that meets a condition's refusal goes to the model, which then fails on the
+# bot actor; an API call or parse that errors fails the job outright, without the
+# model. Either way it does not pass. A Dependabot PR
+# to a workflow (github-actions) must stay there. The steps it skips are skipped by a
+# step-level `if:`, which GitHub documents as leaving the job green (not yet seen on a
+# Dependabot run here). Decided by the operator 2026-11-08.
 name: review
 
 on:
@@ -100,8 +134,99 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.title + "\n\n" + (.body // "")' > .pr-review/pr.md
           gh api "repos/$GITHUB_REPOSITORY/rules/branches/$DEFAULT_REF" > .pr-review/rules.json
 
+      - name: pass a Dependabot dependency bump without the model
+        id: bump
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          bot='dependabot[bot]'
+          review() { echo "the model reviews this PR: $1"; echo "exempt=false" >> "$GITHUB_OUTPUT"; exit 0; }
+          [ "$PR_AUTHOR" = "$bot" ] || review "it is not Dependabot's"
+          [ "$GITHUB_ACTOR" = "$bot" ] || review "this run was started by $GITHUB_ACTOR"
+          current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
+          [ "$current" = "$HEAD_SHA" ] || review "the branch moved during this run"
+          # Commits and files come from comparing the two SHAs this run judges, not from
+          # the PR, whose head can move between calls. compare lists at most 250 commits
+          # and 300 files, so a longer list goes to the model rather than half-read.
+          mkdir -p .pr-review/bump
+          gh api "repos/$GITHUB_REPOSITORY/compare/$BASE_SHA...$HEAD_SHA" > .pr-review/bump/compare.json
+          raw() { gh api "repos/$GITHUB_REPOSITORY/contents/$1?ref=$2" -H 'Accept: application/vnd.github.raw' > "$3"; }
+          raw package.json "$BASE_SHA" .pr-review/bump/base.json
+          raw package.json "$HEAD_SHA" .pr-review/bump/head.json
+          raw package-lock.json "$HEAD_SHA" .pr-review/bump/lock.json
+          reason=$(BOT="$bot" node -e '
+            const fs = require("fs");
+            const read = (f) => JSON.parse(fs.readFileSync(".pr-review/bump/" + f, "utf8"));
+            const say = (why) => { console.log(why); process.exit(0); };
+            const cmp = read("compare.json");
+            if (!Array.isArray(cmp.commits) || cmp.commits.length === 0 || cmp.commits.length !== cmp.total_commits) say("its commits could not all be read");
+            const foreign = cmp.commits.filter((c) => !(c.author && c.author.login === process.env.BOT && c.committer && c.committer.login === "web-flow" && c.commit.verification.verified === true));
+            if (foreign.length) say("a commit not authored by Dependabot and signed by GitHub: " + foreign.map((c) => c.sha).join(" "));
+            const files = cmp.files || [];
+            if (files.length === 0 || files.length >= 300) say("its files could not all be read");
+            const outside = files.filter((f) => f.status !== "modified" || !["package.json", "package-lock.json"].includes(f.filename));
+            if (outside.length) say("it touches more than package.json and package-lock.json: " + outside.map((f) => f.filename).join(" "));
+            const base = read("base.json"), head = read("head.json");
+            const lists = ["dependencies", "devDependencies"];
+            const names = (j) => JSON.stringify(lists.map((k) => Object.keys(j[k] || {}).sort()));
+            if (names(base) !== names(head)) say("package.json adds or removes a dependency");
+            // A value may stay as it was, become a plain semver range, or keep the same
+            // npm: alias target with a plain range. Anything else (another alias target,
+            // git, github:, file:, a URL, a tag) can swap the package and goes to the model.
+            const range = /^[~^]?\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$/;
+            const alias = (v) => /^npm:(.+)@([^@]+)$/.exec(v);
+            for (const k of lists) for (const [n, v] of Object.entries(head[k] || {})) {
+              const was = base[k][n];
+              if (v === was || range.test(v)) continue;
+              const a = alias(v), b = alias(String(was));
+              if (a && b && a[1] === b[1] && range.test(a[2])) continue;
+              say("package.json gives " + n + " a specifier that is not a plain version: " + v);
+            }
+            const rest = (j) => { const c = { ...j }; for (const k of lists) delete c[k]; return JSON.stringify(c); };
+            if (rest(base) !== rest(head)) say("package.json changes more than dependency versions");
+            const lock = read("lock.json");
+            if (!(lock.lockfileVersion >= 2) || !lock.packages || typeof lock.packages !== "object") say("the lockfile has no packages map to check");
+            // An entry must fetch the package its path names, so it cannot point at
+            // another package tarball on the same registry. An entry that names a
+            // different package (an npm: alias) is accepted only where package.json
+            // declares that very alias for a direct dependency.
+            const declared = (dep) => { for (const k of lists) { const a = alias(String((head[k] || {})[dep])); if (a) return a[1]; } return null; };
+            const off = Object.entries(lock.packages).filter(([k, v]) => {
+              if (!k) return false;
+              // A key outside node_modules/ (a workspace or folder entry) names no package,
+              // and lastIndexOf would then slice a meaningless name out of it (sixth model
+              // review of PR #33, run 42517276841). Path and name must be npm package names.
+              const npmName = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/;
+              if (!k.startsWith("node_modules/")) return true;
+              const path = k.slice(k.lastIndexOf("node_modules/") + "node_modules/".length);
+              if (!npmName.test(path) || (v.name !== undefined && !npmName.test(String(v.name)))) return true;
+              if (v.name !== undefined && v.name !== path && !(k === "node_modules/" + path && declared(path) === v.name)) return true;
+              const name = v.name === undefined ? path : v.name;
+              // The whole URL is pinned, not a prefix: npm parses it as a WHATWG URL,
+              // which resolves ../ and %2e%2e, so a prefix could still lead elsewhere
+              // (fourth model review of PR #33, run 42516644937). All 221 entries of
+              // this lockfile had this exact shape and a sha512 on 2026-11-08.
+              const raw = String(v.resolved || "");
+              let url;
+              try { url = new URL(raw); } catch { return true; }
+              const file = "/" + name + "/-/" + name.slice(name.lastIndexOf("/") + 1) + "-" + v.version + ".tgz";
+              return !(url.origin === "https://registry.npmjs.org" && !url.search && !url.hash && !/%|\.\./.test(raw)
+                && url.pathname === file && /^sha512-[A-Za-z0-9+/]+={0,2}$/.test(String(v.integrity)));
+            }).map(([k]) => k);
+            if (off.length) say("the lockfile has entries that do not fetch their own package from registry.npmjs.org with an integrity hash: " + off.join(" "));
+          ')
+          [ -z "$reason" ] || review "$reason"
+          echo "exempt=true" >> "$GITHUB_OUTPUT"
+          echo "PASS without the model: a Dependabot bump of package.json/package-lock.json only, every source on registry.npmjs.org with an integrity hash" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: review
         id: review
+        if: steps.bump.outputs.exempt != 'true'
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -129,6 +254,7 @@ jobs:
             --json-schema '{"type":"object","properties":{"first_diff_line":{"type":"string"},"findings":{"type":"string"},"verdict":{"type":"string","enum":["PASS","FAIL"]}},"required":["first_diff_line","findings","verdict"]}'
 
       - name: the verdict decides
+        if: steps.bump.outputs.exempt != 'true'
         env:
           OUTPUT: ${{ steps.review.outputs.structured_output }}
         run: |
