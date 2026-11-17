@@ -49,7 +49,8 @@
 #   because author.login comes from an email anyone can write;
 # - every file is modified, not added, removed or renamed, and is a package.json, a
 #   package-lock.json, or a workflow whose changed lines are all uses lines, each added
-#   one naming the action of the removed one it replaces, so only refs move;
+#   one naming the action of the removed one it replaces at a full commit SHA, so only
+#   pinned refs move;
 # - a package.json keeps its dependencies and the rest of the file, and each specifier
 #   stays, becomes a plain semver range, or keeps its npm: alias target, so no alias,
 #   git, file or URL specifier swaps a package in;
@@ -62,10 +63,15 @@
 # manifests are this template's. shared/review-template-dependabot.test.js runs each.
 # Anything else, a person's push onto Dependabot's branch included, gets the model review;
 # an undecided Dependabot run FAILS, since the model cannot take a bot actor, and a call
-# that errors fails the step. NOTHING here judges whether a new release is safe: a bump's
-# diff is versions and hashes, the code is in the tarball. The required test check decides
-# such a PR, so a repository taking this template must require one (agent-config README,
-# D2). The step reads only the API, never the PR's content as code, and holds no secret.
+# that errors fails the step, as does a draft. NOTHING here judges whether a new release is
+# safe: a bump's diff is versions and hashes, the code is in the tarball. For a manifest
+# bump the required test check is the judge, so a repository taking this template must
+# require one (agent-config README, D2). For an action pin it is not: the tests do not run
+# the actions only a release workflow uses, often the ones holding its secrets, so the
+# person who merges is the only judge of a pin, and a repository must not auto-merge one
+# (ADR-001's accepted risk).
+# Each added ref must be a full commit SHA. The step reads only the API, never the PR's
+# content as code, and holds no secret.
 name: review
 
 on:
@@ -97,6 +103,7 @@ jobs:
           DEFAULT_REF: ${{ github.event.repository.default_branch }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          DRAFT: ${{ github.event.pull_request.draft }}
         run: |
           BOT='dependabot[bot]'
           if [ "$AUTHOR" != "$BOT" ]; then echo "decided=false" >> "$GITHUB_OUTPUT"; exit 0; fi
@@ -104,6 +111,7 @@ jobs:
           [ "$ACTOR" = "$BOT" ] || why="this run's actor is $ACTOR"
           [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ] || why="${why:-the head is in $HEAD_REPO}"
           [ "$BASE_REF" = "$DEFAULT_REF" ] || why="${why:-the base is $BASE_REF}"
+          [ "$DRAFT" != "true" ] || why="${why:-it is a draft}"
           # The judgement prints why a PR is not decided, and nothing when it is. A call
           # or parse that errors exits non-zero, and the step fails without the model.
           if [ -z "$why" ]; then
@@ -134,19 +142,20 @@ jobs:
               else if (/(^|\/)package-lock\.json$/.test(n)) locks.add(dir);
               else if (/^\.github\/workflows\/[^\/]+\.ya?ml$/.test(n) && typeof f.patch === "string") {
                 // Every changed line is a uses line, and each added line names the action of
-            // the removed line it replaces, in order: Dependabot writes each pin as a -
-            // then a + line. Matching the pairs, not the sets, keeps two steps from
-            // trading actions, each with the inputs of the other.
-            const use = /^[-+]\s*(?:-\s+)?uses[:]\s+["\x27]?([^@\s"\x27]+)@\S+/;
-            const was = [];
-            let bad = false;
-            for (const l of f.patch.split("\n").filter((l) => /^[-+]/.test(l))) {
-              const m = use.exec(l);
-              if (!m) { bad = true; break; }
-              if (l[0] === "-") was.push(m[1]);
-              else if (was.shift() !== m[1]) { bad = true; break; }
-            }
-            if (bad || was.length) outside.push(n);
+                // the oldest removed line not yet matched: removals come before additions in
+                // a diff, grouped or interleaved. Matching the pairs, not the sets, keeps two
+                // steps from trading actions, each with the inputs of the other. An added ref
+                // must be a full commit SHA, so a pin cannot become a branch or tag that moves.
+                const use = /^[-+]\s*(?:-\s+)?uses[:]\s+["\x27]?([^@\s"\x27]+)@([^\s"\x27]+)/;
+                const was = [];
+                let bad = false;
+                for (const l of f.patch.split("\n").filter((l) => /^[-+]/.test(l))) {
+                  const m = use.exec(l);
+                  if (!m) { bad = true; break; }
+                  if (l[0] === "-") was.push(m[1]);
+                  else if (was.shift() !== m[1] || !/^[0-9a-f]{40}$/.test(m[2])) { bad = true; break; }
+                }
+                if (bad || was.length) outside.push(n);
             } else outside.push(n);
             }
             if (outside.length) say("outside manifests and action pins: " + outside.join(", "));
@@ -211,7 +220,7 @@ jobs:
             exit 0
           fi
           echo "decided=true" >> "$GITHUB_OUTPUT"
-          printf '## PASS (no model)\n\nA Dependabot bump of manifests and action pins only; the required tests decide it (ADR-001 of agent-config).\n' >> "$GITHUB_STEP_SUMMARY"
+          printf '## PASS (no model)\n\nA Dependabot bump of manifests and action pins only (ADR-001 of agent-config): the required tests judge a manifest bump; nothing here judges an action pin, the person who merges does.\n' >> "$GITHUB_STEP_SUMMARY"
 
       - name: refuse what this workflow cannot review
         if: steps.bot.outputs.decided != 'true'
