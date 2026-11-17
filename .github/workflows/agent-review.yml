@@ -70,8 +70,13 @@
 # the actions only a release workflow uses, often the ones holding its secrets, so the
 # person who merges is the only judge of a pin, and a repository must not auto-merge one
 # (ADR-001's accepted risk).
-# Each added ref must be a full commit SHA. The step reads only the API, never the PR's
-# content as code, and holds no secret.
+# Each added ref must be a full commit SHA. A repository that wants a person on every pin
+# says {"dependabot_pins": "person"} in .agent-config.json, read from the default branch as
+# it is when the step runs; any value
+# but "decided" holds pins the same way, so a typo cannot open the path (the operator,
+# 2026-11-17, for homey-mspa, whose publish workflow holds a secret). The step reads only
+# the API, never the PR's content as code, and holds no secret beyond the read-only
+# github.token.
 name: review
 
 on:
@@ -135,12 +140,29 @@ jobs:
             if (files.length >= 300) say("its files could not all be read");
             const safe = /^(?!.*(^|\/)\.\.?(\/|$))[A-Za-z0-9._@\/-]+$/;
             const manifests = new Set(), locks = new Set(), outside = [];
+            // A repository may hold action pins for a person: {"dependabot_pins": "person"}
+            // in its .agent-config.json, read from the default branch as it is now, which
+            // the PR cannot change, and not from the event base, which can predate the key.
+            // Absent, or "decided", lets the paired check below decide a pin. Any other
+            // value holds them too, so a typo cannot open the path. A file that cannot be
+            // read or parsed, other than one that is not there, fails the step.
+            // githooks/settings.js in agent-config is the one list of these keys.
+            const pins = () => {
+              let raw;
+              try { raw = api("contents/.agent-config.json?ref=" + encodeURIComponent(env.DEFAULT_REF), true); }
+              catch (e) { if (/HTTP 404/.test(String(e.stderr) + String(e.message))) return "decided"; throw e; }
+              const cfg = JSON.parse(raw);
+              if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) throw new Error(".agent-config.json is not a JSON object");
+              return Object.prototype.hasOwnProperty.call(cfg, "dependabot_pins") ? cfg.dependabot_pins : "decided";
+            };
             for (const f of files) {
               const n = f.filename, dir = n.includes("/") ? n.slice(0, n.lastIndexOf("/") + 1) : "";
               if (f.status !== "modified" || !safe.test(n)) outside.push(n);
               else if (/(^|\/)package\.json$/.test(n)) manifests.add(dir);
               else if (/(^|\/)package-lock\.json$/.test(n)) locks.add(dir);
               else if (/^\.github\/workflows\/[^\/]+\.ya?ml$/.test(n) && typeof f.patch === "string") {
+                const held = pins();
+                if (held !== "decided") say("this repository holds action pins for a person (.agent-config.json says dependabot_pins: " + JSON.stringify(held) + ")");
                 // Every changed line is a uses line, and each added line names the action of
                 // the oldest removed line not yet matched: removals come before additions in
                 // a diff, grouped or interleaved. Matching the pairs, not the sets, keeps two

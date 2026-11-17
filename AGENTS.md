@@ -44,11 +44,14 @@ There is no linter and no formatter. Match the surrounding style.
 
 Through a pull request. Typecheck, unit tests, `homey app validate` and the model
 review run on it, and a draft is not reviewed until it is marked ready. A
-Dependabot PR that only bumps npm packages or action pins passes `review` without
-the model; the conditions, and why, are in the header of
-`.github/workflows/agent-review.yml`, a verbatim copy of agent-config's
-`templates/agent-review.yml` (ADR-001 there). Change the template and copy it, never
-this file alone. Release
+Dependabot PR that only bumps npm packages passes `review` without the model; the
+conditions, and why, are in the header of `.github/workflows/agent-review.yml`, a
+verbatim copy of agent-config's `templates/agent-review.yml` (ADR-001 there). Change
+the template and copy it, never this file alone. A Dependabot PR that moves an action
+pin fails `review` and waits for a person, because `.agent-config.json` says
+`"dependabot_pins": "person"`. That is the operator's decision of 2026-11-08, kept on
+2026-11-17: `publish.yml` hands `HOMEY_PAT` to an action no test runs. Check the
+file with `node ~/.local/share/agent-config/githooks/settings.js check`. Release
 goes the same way; see the version entry below. Tags are made by
 `tag-release.yml` after a merge, so do not tag by hand.
 
