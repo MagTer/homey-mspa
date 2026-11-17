@@ -154,7 +154,10 @@ describe('MspaDevice', () => {
   let device: any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Reset, not clear: tests override shared mocks (getApiClient -> null),
+    // and since vitest 3 restoreAllMocks below no longer undoes that for
+    // vi.fn() mocks. mockReset returns each one to its original implementation.
+    vi.resetAllMocks();
     mockSendCommand.mockResolvedValue({});
     mockAuthenticate.mockResolvedValue('test-token');
     mockGetThingShadow.mockResolvedValue({});

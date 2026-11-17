@@ -9,10 +9,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const authenticate = vi.fn();
 vi.mock('../lib/mspa-api/client.ts', () => ({
-  MspaApiClient: vi.fn().mockImplementation((config: any) => ({
-    config,
-    authenticate,
-  })),
+  // A function expression, not an arrow: api.js calls this with `new`, and
+  // since vitest 3 a mock whose implementation is an arrow cannot construct.
+  MspaApiClient: vi.fn().mockImplementation(function (config: any) {
+    return { config, authenticate };
+  }),
 }));
 
 // @ts-expect-error - plain JS module without type declarations
